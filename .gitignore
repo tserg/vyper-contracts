@@ -1,0 +1,11 @@
+__pycache__
+.env
+.history
+.hypothesis/
+build/
+reports/
+
+.git
+.gitattributes
+.pytest_cache
+/build
