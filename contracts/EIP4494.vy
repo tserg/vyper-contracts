@@ -168,7 +168,6 @@ DOMAIN_TYPE_HASH: constant(bytes32) = keccak256(
 PERMIT_TYPE_HASH: constant(bytes32) = keccak256(
 	"Permit(address spender,uint256 tokenId,uint256 nonce,uint256 deadline)"
 )
-VERSION: constant(String[28]) = "0.0.1"
 
 @external
 def __init__(
@@ -199,11 +198,11 @@ def __init__(
 	self.beneficiary = _beneficiary
 
 	self.DOMAIN_SEPARATOR = keccak256(
-		_abi_encode(
+		concat( # not sure why _abi_encode does no work
 			DOMAIN_TYPE_HASH,
 			keccak256(convert("Vyper EIP4494", Bytes[13])),
-			keccak256(convert(VERSION, Bytes[28])),
-			convert(chain.id, bytes32),
+			keccak256(convert("1.0.0", Bytes[5])),
+			convert(1337, bytes32), # chain ID for ganache
 			convert(self, bytes32)
 		)
 	)
@@ -378,12 +377,6 @@ def tokenOfOwnerByIndex(_owner: address, _index: uint256) -> uint256:
 @external
 def baseURI() -> String[64]:
 	return self.baseTokenURI
-
-
-@view
-@external
-def get_version() -> String[28]:
-	return VERSION
 
 
 @view
@@ -749,11 +742,11 @@ def permit(
 
 	# Need to derive nonce and signer from signature
 	digest: bytes32 = keccak256(
-		_abi_encode(
+		concat( # not sure why _abi_encode does not work
 			b'\x19\x01',
 			self.DOMAIN_SEPARATOR,
 			keccak256(
-				_abi_encode(
+				concat(
 					PERMIT_TYPE_HASH,
 					convert(spender, bytes32),
 					convert(tokenId, bytes32),

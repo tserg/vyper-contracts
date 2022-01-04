@@ -18,22 +18,22 @@ def main():
         accounts[0]
     )
 
-    local = accounts.add()
-    accounts[0].transfer(local, 50000)
+    local_account = accounts.add()
+    accounts[0].transfer(local_account, 50000)
 
     c.mint(
-        local,
+        local_account,
         '1.json',
         {'from': accounts[0]}
     )
 
-    assert c.ownerOf(1) == local
+    assert c.ownerOf(1) == local_account
 
     class Permit(EIP712Message):
 
         # EIP-712 fields
         _name_: "string" = "Vyper EIP4494"
-        _version_: "string" = "0.0.1"
+        _version_: "string" = "1.0.0"
         _chainId_: "uint256" = chain.id
         _verifyingContract_: "address" = c.address
 
@@ -53,14 +53,15 @@ def main():
         deadline=deadline
     )
 
-    signed = local.sign_message(permit)
-    signed_message_hex = signed.messageHash.hex()
-
+    signed = local_account.sign_message(permit)
+    print(signed.signature)
 
     tx = c.permit(
         permit.spender,
         permit.tokenId,
         permit.deadline,
-        signed_message_hex,
-        {'from': local}
+        signed.signature,
+        {'from': local_account}
     )
+
+    print(tx.events)
