@@ -742,7 +742,7 @@ def permit(
 	assert deadline >= block.timestamp, "Deadline must be equal to or greater than current block"
 
 	# Throws if token belongs to ZERO_ADDRESS
-	assert self.idToOwner[tokenId] != ZERO_ADDRESS
+	assert self.idToOwner[tokenId] != ZERO_ADDRESS, "Token is owned by ZERO_ADDRESS"
 
 	_owner: address = self.idToOwner[tokenId]
 	_nonce: uint256 = self.idToNonce[tokenId]
@@ -769,7 +769,7 @@ def permit(
 	v: uint256 = convert(slice(signature, 64, 1), uint256)
 
 	# Throws if signature is not from owner
-	assert ecrecover(digest, v, r, s) == _owner
+	assert ecrecover(digest, v, r, s) == _owner, "Invalid signature"
 
 	self._approve(spender, tokenId)
 	log Approval(_owner, spender, tokenId)
