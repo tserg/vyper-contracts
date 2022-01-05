@@ -24,6 +24,7 @@ def local_account(accounts):
     accounts[0].transfer(a, 50000)
     yield a
 
+
 @pytest.fixture(scope="module", autouse="True")
 def eip4494(accounts, EIP4494):
     c = accounts[0].deploy(
@@ -154,6 +155,8 @@ def test_transferFrom_by_owner(accounts,eip4494):
             {'from': accounts[0]}
         )
 
+    nonce = eip4494.nonces(1)
+
     tx = eip4494.transferFrom(
         accounts[0],
         accounts[1],
@@ -170,11 +173,13 @@ def test_transferFrom_by_owner(accounts,eip4494):
     assert eip4494.balanceOf(accounts[1]) == 1
 
     assert eip4494.ownerOf(1) == accounts[1]
-
+    assert eip4494.nonces(1) == nonce + 1
 
 def test_transferFrom_by_approved(accounts, eip4494):
 
     eip4494.approve(accounts[1], 1, {'from': accounts[0]})
+    nonce = eip4494.nonces(1)
+
     tx = eip4494.transferFrom(
         accounts[0],
         accounts[2],
@@ -191,11 +196,13 @@ def test_transferFrom_by_approved(accounts, eip4494):
     assert eip4494.balanceOf(accounts[2]) == 1
 
     assert eip4494.ownerOf(1) == accounts[2]
-
+    assert eip4494.nonces(1) == nonce + 1
 
 def test_transferFrom_by_operator(accounts, eip4494):
 
     eip4494.setApprovalForAll(accounts[1], True, {'from': accounts[0]})
+    nonce = eip4494.nonces(1)
+
     tx = eip4494.transferFrom(
         accounts[0],
         accounts[2],
@@ -212,7 +219,7 @@ def test_transferFrom_by_operator(accounts, eip4494):
     assert eip4494.balanceOf(accounts[2]) == 1
 
     assert eip4494.ownerOf(1) == accounts[2]
-
+    assert eip4494.nonces(1) == nonce + 1
 
 def test_safeTransferFrom_by_owner(accounts,eip4494):
 
@@ -238,6 +245,8 @@ def test_safeTransferFrom_by_owner(accounts,eip4494):
             {'from': accounts[0]}
         )
 
+    nonce = eip4494.nonces(1)
+
     tx = eip4494.safeTransferFrom(
         accounts[0],
         accounts[1],
@@ -254,11 +263,12 @@ def test_safeTransferFrom_by_owner(accounts,eip4494):
     assert eip4494.balanceOf(accounts[1]) == 1
 
     assert eip4494.ownerOf(1) == accounts[1]
-
+    assert eip4494.nonces(1) == nonce + 1
 
 def test_safeTransferFrom_by_approved(accounts, eip4494):
 
     eip4494.approve(accounts[1], 1, {'from': accounts[0]})
+    nonce = eip4494.nonces(1)
     tx = eip4494.safeTransferFrom(
         accounts[0],
         accounts[2],
@@ -275,7 +285,7 @@ def test_safeTransferFrom_by_approved(accounts, eip4494):
     assert eip4494.balanceOf(accounts[2]) == 1
 
     assert eip4494.ownerOf(1) == accounts[2]
-
+    assert eip4494.nonces(1) == nonce + 1
 
 def test_safeTransferFrom_by_operator(accounts, eip4494):
 
@@ -315,8 +325,6 @@ def test_burn(accounts, eip4494):
 
 @pytest.fixture
 def test_permit(accounts, chain, local_account, eip4494):
-
-    accounts[0].transfer(local_account, 50000)
 
     eip4494.mint(
         local_account,
@@ -372,8 +380,168 @@ def test_permit(accounts, chain, local_account, eip4494):
     assert eip4494.getApproved(2) == accounts[2].address
 
 
+@pytest.fixture
+def test_permit_two(accounts, chain, local_account, eip4494):
+
+    eip4494.mint(
+        local_account,
+        '2.json',
+        {'from': accounts[0]}
+    )
+
+    assert eip4494.ownerOf(2) == local_account.address
+    assert chain.id == 1337
+
+    class Permit(EIP712Message):
+
+        # EIP-712 fields
+        _name_: "string" = "Vyper EIP4494"
+        _version_: "string" = "1.0.0"
+        _chainId_: "uint256" = 1337
+        _verifyingContract_: "address" = eip4494.address
+
+        # EIP-4494 fields
+        spender: "address"
+        tokenId: "uint256"
+        nonce: "uint256"
+        deadline: "uint256"
+
+    nonce = int(eip4494.nonces(2))
+    deadline = chain.time() + 10000
+
+    assert nonce == 0
+    assert deadline > chain.time()
+
+    permit = Permit(
+        spender=accounts[2].address,
+        tokenId=2,
+        nonce=nonce,
+        deadline=deadline
+    )
+
+    signed = local_account.sign_message(permit)
+
+    tx = eip4494.permit(
+        permit.spender,
+        permit.tokenId,
+        permit.deadline,
+        signed.signature,
+        {'from': accounts[2]}
+    )
+
+    assert len(tx.events) == 1
+    assert tx.events[0]['owner'] == local_account.address
+    assert tx.events[0]['approved'] == accounts[2].address
+    assert tx.events[0]['tokenId'] == 2
+
+    assert eip4494.getApproved(2) == accounts[2].address
+
+
+def test_permit_expired(accounts, chain, local_account, eip4494):
+
+    accounts[0].transfer(local_account, 50000)
+
+    eip4494.mint(
+        local_account,
+        '2.json',
+        {'from': accounts[0]}
+    )
+
+    assert eip4494.ownerOf(2) == local_account.address
+    assert chain.id == 1337
+
+    class Permit(EIP712Message):
+
+        # EIP-712 fields
+        _name_: "string" = "Vyper EIP4494"
+        _version_: "string" = "1.0.0"
+        _chainId_: "uint256" = 1337
+        _verifyingContract_: "address" = eip4494.address
+
+        # EIP-4494 fields
+        spender: "address"
+        tokenId: "uint256"
+        nonce: "uint256"
+        deadline: "uint256"
+
+    nonce = int(eip4494.nonces(2))
+    deadline = chain.time() - 1
+
+    permit = Permit(
+        spender=accounts[2].address,
+        tokenId=2,
+        nonce=nonce,
+        deadline=deadline
+    )
+
+    signed = local_account.sign_message(permit)
+
+    with reverts():
+        tx = eip4494.permit(
+            permit.spender,
+            permit.tokenId,
+            permit.deadline,
+            signed.signature,
+            {'from': accounts[2]}
+        )
+
+    assert eip4494.getApproved(2) == ZERO_ADDRESS
+
+
+def test_permit_fail_non_owner(accounts, chain, local_account, eip4494):
+
+    accounts[0].transfer(local_account, 50000)
+
+    eip4494.mint(
+        local_account,
+        '2.json',
+        {'from': accounts[0]}
+    )
+
+    assert eip4494.ownerOf(2) == local_account.address
+    assert chain.id == 1337
+
+    class Permit(EIP712Message):
+
+        # EIP-712 fields
+        _name_: "string" = "Vyper EIP4494"
+        _version_: "string" = "1.0.0"
+        _chainId_: "uint256" = 1337
+        _verifyingContract_: "address" = eip4494.address
+
+        # EIP-4494 fields
+        spender: "address"
+        tokenId: "uint256"
+        nonce: "uint256"
+        deadline: "uint256"
+
+    nonce = int(eip4494.nonces(2))
+    deadline = chain.time() - 1
+
+    permit = Permit(
+        spender=accounts[2].address,
+        tokenId=1,
+        nonce=nonce,
+        deadline=deadline
+    )
+
+    signed = local_account.sign_message(permit)
+
+    with reverts():
+        tx = eip4494.permit(
+            permit.spender,
+            permit.tokenId,
+            permit.deadline,
+            signed.signature,
+            {'from': accounts[2]}
+        )
+
+    assert eip4494.getApproved(1) == ZERO_ADDRESS
+
+
 def test_transferFrom_by_permit_approved(accounts, local_account, eip4494, test_permit):
 
+    nonce = eip4494.nonces(2)
     tx = eip4494.transferFrom(
         local_account,
         accounts[1],
@@ -390,11 +558,34 @@ def test_transferFrom_by_permit_approved(accounts, local_account, eip4494, test_
     assert eip4494.balanceOf(local_account) == 0
 
     assert eip4494.ownerOf(2) == accounts[1]
-    assert eip4494.nonces(2) == 1
+    assert eip4494.nonces(2) == nonce + 1
+
+
+def test_transferFrom_by_permit_approved_two(accounts, local_account, eip4494, test_permit_two):
+
+    nonce = eip4494.nonces(2)
+    tx = eip4494.transferFrom(
+        local_account,
+        accounts[1],
+        2,
+        {'from': accounts[2]}
+    )
+
+    assert len(tx.events) == 1
+    assert tx.events[0]["sender"] == local_account
+    assert tx.events[0]["receiver"] == accounts[1]
+    assert tx.events[0]["tokenId"] == 2
+
+    assert eip4494.balanceOf(accounts[1]) == 1
+    assert eip4494.balanceOf(local_account) == 0
+
+    assert eip4494.ownerOf(2) == accounts[1]
+    assert eip4494.nonces(2) == nonce + 1
 
 
 def test_safeTransferFrom_by_permit_approved(accounts, local_account, eip4494, test_permit):
 
+    nonce = eip4494.nonces(2)
     tx = eip4494.safeTransferFrom(
         local_account,
         accounts[1],
@@ -411,4 +602,124 @@ def test_safeTransferFrom_by_permit_approved(accounts, local_account, eip4494, t
     assert eip4494.balanceOf(local_account) == 0
 
     assert eip4494.ownerOf(2) == accounts[1]
-    assert eip4494.nonces(2) == 1
+    assert eip4494.nonces(2) == nonce + 1
+
+
+def test_safeTransferFrom_by_permit_approved_two(accounts, local_account, eip4494, test_permit_two):
+
+    nonce = eip4494.nonces(2)
+    tx = eip4494.safeTransferFrom(
+        local_account,
+        accounts[1],
+        2,
+        {'from': accounts[2]}
+    )
+
+    assert len(tx.events) == 1
+    assert tx.events[0]["sender"] == local_account
+    assert tx.events[0]["receiver"] == accounts[1]
+    assert tx.events[0]["tokenId"] == 2
+
+    assert eip4494.balanceOf(accounts[1]) == 1
+    assert eip4494.balanceOf(local_account) == 0
+
+    assert eip4494.ownerOf(2) == accounts[1]
+    assert eip4494.nonces(2) == nonce + 1
+
+
+def test_multiple_permits_invalid_on_first_transfer(
+    accounts,
+    chain,
+    local_account,
+    eip4494,
+    test_permit
+):
+
+    class Permit(EIP712Message):
+
+        # EIP-712 fields
+        _name_: "string" = "Vyper EIP4494"
+        _version_: "string" = "1.0.0"
+        _chainId_: "uint256" = 1337
+        _verifyingContract_: "address" = eip4494.address
+
+        # EIP-4494 fields
+        spender: "address"
+        tokenId: "uint256"
+        nonce: "uint256"
+        deadline: "uint256"
+
+    nonce = int(eip4494.nonces(2))
+    deadline = chain.time() + 10000
+
+    permit_1 = Permit(
+        spender=accounts[1].address,
+        tokenId=2,
+        nonce=nonce,
+        deadline=deadline
+    )
+
+    permit_2 = Permit(
+        spender=accounts[2].address,
+        tokenId=2,
+        nonce=nonce,
+        deadline=deadline
+    )
+
+    signed_1 = local_account.sign_message(permit_1)
+    signed_2 = local_account.sign_message(permit_2)
+
+    permit_tx_1 = eip4494.permit(
+        permit_1.spender,
+        permit_1.tokenId,
+        permit_1.deadline,
+        signed_1.signature,
+        {'from': accounts[1]}
+    )
+
+    assert eip4494.getApproved(2) == accounts[1]
+
+    permit_tx_2 = eip4494.permit(
+        permit_2.spender,
+        permit_2.tokenId,
+        permit_2.deadline,
+        signed_2.signature,
+        {'from': accounts[2]}
+    )
+
+    assert eip4494.getApproved(2) == accounts[2]
+
+    tx_1 = eip4494.transferFrom(
+        local_account,
+        accounts[2],
+        2,
+        {'from': accounts[2]}
+    )
+
+    assert len(tx_1.events) == 1
+    assert tx_1.events[0]["sender"] == local_account
+    assert tx_1.events[0]["receiver"] == accounts[2]
+    assert tx_1.events[0]["tokenId"] == 2
+
+    assert eip4494.balanceOf(accounts[2]) == 1
+    assert eip4494.balanceOf(local_account) == 0
+
+    assert eip4494.ownerOf(2) == accounts[2]
+    assert eip4494.nonces(2) == nonce + 1
+
+    with reverts():
+        eip4494.transferFrom(
+            local_account,
+            accounts[1],
+            2,
+            {'from': accounts[1]}
+        )
+
+    with reverts():
+        eip4494.permit(
+            permit_1.spender,
+            permit_1.tokenId,
+            permit_1.deadline,
+            signed_1.signature,
+            {'from': accounts[1]}
+        )
