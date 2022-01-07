@@ -340,7 +340,7 @@ def test_permit(accounts, chain, local_account, eip4494):
         # EIP-712 fields
         _name_: "string" = "Vyper EIP4494"
         _version_: "string" = "1.0.0"
-        _chainId_: "uint256" = 1337
+        _chainId_: "uint256" = chain.id
         _verifyingContract_: "address" = eip4494.address
 
         # EIP-4494 fields
@@ -397,7 +397,7 @@ def test_permit_two(accounts, chain, local_account, eip4494):
         # EIP-712 fields
         _name_: "string" = "Vyper EIP4494"
         _version_: "string" = "1.0.0"
-        _chainId_: "uint256" = 1337
+        _chainId_: "uint256" = chain.id
         _verifyingContract_: "address" = eip4494.address
 
         # EIP-4494 fields
@@ -455,7 +455,7 @@ def test_permit_expired(accounts, chain, local_account, eip4494):
         # EIP-712 fields
         _name_: "string" = "Vyper EIP4494"
         _version_: "string" = "1.0.0"
-        _chainId_: "uint256" = 1337
+        _chainId_: "uint256" = chain.id
         _verifyingContract_: "address" = eip4494.address
 
         # EIP-4494 fields
@@ -506,7 +506,7 @@ def test_permit_fail_non_owner(accounts, chain, local_account, eip4494):
         # EIP-712 fields
         _name_: "string" = "Vyper EIP4494"
         _version_: "string" = "1.0.0"
-        _chainId_: "uint256" = 1337
+        _chainId_: "uint256" = chain.id
         _verifyingContract_: "address" = eip4494.address
 
         # EIP-4494 fields
@@ -640,7 +640,7 @@ def test_multiple_permits_invalid_on_first_transfer(
         # EIP-712 fields
         _name_: "string" = "Vyper EIP4494"
         _version_: "string" = "1.0.0"
-        _chainId_: "uint256" = 1337
+        _chainId_: "uint256" = chain.id
         _verifyingContract_: "address" = eip4494.address
 
         # EIP-4494 fields
