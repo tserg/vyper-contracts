@@ -198,12 +198,12 @@ def __init__(
 	self.beneficiary = _beneficiary
 
 	self.DOMAIN_SEPARATOR = keccak256(
-		concat( # not sure why _abi_encode does no work
+		_abi_encode(
 			DOMAIN_TYPE_HASH,
 			keccak256(convert("Vyper EIP4494", Bytes[13])),
 			keccak256(convert("1.0.0", Bytes[5])),
 			convert(1337, bytes32), # chain ID for ganache
-			convert(self, bytes32)
+			self
 		)
 	)
 	return True
@@ -746,12 +746,12 @@ def permit(
 			b'\x19\x01',
 			self.DOMAIN_SEPARATOR,
 			keccak256(
-				concat(
+				_abi_encode(
 					PERMIT_TYPE_HASH,
-					convert(spender, bytes32),
-					convert(tokenId, bytes32),
-					convert(_nonce, bytes32),
-					convert(deadline, bytes32)
+					spender,
+					tokenId,
+					_nonce,
+					deadline
 				)
 			)
 		)
