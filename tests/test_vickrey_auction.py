@@ -146,3 +146,44 @@ def test_refund_2(accounts, auction, close_auction):
 
     assert accounts[1].balance() == a1_balance + Wei("1 ether")
     assert auction.bidder_to_balance(accounts[2]) == 0
+
+
+def test_single_bid_wins(accounts, auction, a1_first_bid):
+
+    assert auction.get_second_highest_bid() == Wei("1 ether")
+
+    a1_balance = accounts[1].balance()
+    a0_balance = accounts[0].balance()
+
+    chain.sleep(100001)
+
+    close_tx = auction.close({'from': accounts[0]})
+
+    assert accounts[0].balance() == a0_balance + auction.get_second_highest_bid()
+    assert auction.has_ended() == True
+
+    refund_tx = auction.refund({'from': accounts[1]})
+
+    assert len(refund_tx.events) == 1
+    assert refund_tx.events[0]['value'] == Wei("0.5 ether")
+    assert refund_tx.events[0]['bidder'] == accounts[1]
+
+
+def test_illegal_close_auction_1(accounts, auction):
+
+    assert auction.has_ended() == False
+
+    with reverts("Auction has not ended"):
+        auction.close({'from': accounts[0]})
+
+    assert auction.has_ended() == False
+
+
+def test_illegal_close_auction_2(accounts, auction, a1_first_bid):
+
+    assert auction.has_ended() == False
+
+    with reverts("Auction has not ended"):
+        auction.close({'from': accounts[0]})
+
+    assert auction.has_ended() == False
