@@ -1,8 +1,17 @@
 # @version ^0.3.0
 
-# @dev Implementation of EIP-4494 extension to ERC-721 non-fungible token standard.
-#	   Reference is made to EIP-4494 [https://eips.ethereum.org/EIPS/eip-4494]
-#	   and Yearn's implementation of EIP2612 [https://github.com/yearn/yearn-vaults/blob/main/contracts/Vault.vy]
+# @dev
+
+"""
+@title ERC-721 non-fungible token standard with EIP-4494 extension for approval by
+       signature.
+@license GPL-3.0
+@author Gary Tse
+@notice You can use this contract for a simple Vickrey auction.
+@dev Implementation of EIP-4494 extension to ERC-721 non-fungible token standard.
+     Reference is made to EIP-4494 [https://eips.ethereum.org/EIPS/eip-4494]
+     and Yearn's implementation of EIP2612 [https://github.com/yearn/yearn-vaults/blob/main/contracts/Vault.vy]
+"""
 
 from vyper.interfaces import ERC721
 

@@ -1,5 +1,13 @@
 # @version ^0.3.0
 
+"""
+@title Contract to sign and verify EIP-712 messages.
+@license GPL-3.0
+@author Gary Tse
+@notice You can use this contract to see how EIP-712 messages can be implemented
+		in Vyper.
+"""
+
 event Incoming:
 	sms: uint256
 	sender: indexed(address)
@@ -33,7 +41,13 @@ def message(
 	sms: uint256,
 	signature: Bytes[65]
 ) -> bool:
-
+	"""
+	@notice Verify a signature and check if it was signed by `msg.sender`.
+	@dev Throws if the signature cannot be verified.
+	@param sms An arbitrary number to append to the message
+	@param signature A 65-bytes signature comprising v, r and s components.
+	@return True if the signature is verified.
+	"""
 	digest: bytes32 = keccak256(
 		concat(
 			b'\x19\x01',
