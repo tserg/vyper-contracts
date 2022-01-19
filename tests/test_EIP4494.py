@@ -18,14 +18,14 @@ EIP4494_INTERFACE_ID = "0x000000000000000000000000000000000000000000000000000000
 
 # Tests adapted from official Vyper example
 
-@pytest.fixture(scope="module", autouse="True")
+@pytest.fixture(scope="module", autouse=True)
 def local_account(accounts):
     a = accounts.add()
     accounts[0].transfer(a, 50000)
     yield a
 
 
-@pytest.fixture(scope="module", autouse="True")
+@pytest.fixture(scope="module", autouse=True)
 def eip4494(accounts, EIP4494):
     c = accounts[0].deploy(
         EIP4494,

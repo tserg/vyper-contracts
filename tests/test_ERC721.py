@@ -17,7 +17,7 @@ ERC721_TOKEN_RECEIVER_INTERFACE_ID = b'\x15\x0bz\x02'
 # Tests adapted from official Vyper example
 
 
-@pytest.fixture(scope="module", autouse="True")
+@pytest.fixture(scope="module", autouse=True)
 def erc721(accounts, ERC721):
     c = accounts[0].deploy(
         ERC721,
