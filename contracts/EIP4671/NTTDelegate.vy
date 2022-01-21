@@ -64,7 +64,7 @@ ERC165_INTERFACE_ID: constant(Bytes[32]) = b"\x01\xff\xc9\xa7"
 EIP_4671_INTERFACE_ID: constant(Bytes[32]) = b"\xd2K\xe28"
 
 # @dev ERC165 interface ID of EIP4671 Metadata
-EIP_4671_METADATA_INTERFACE_ID: constant(Bytes[32]) = b"\xd2K\xe28"
+EIP_4671_METADATA_INTERFACE_ID: constant(Bytes[32]) = b"z\xf9&7"
 
 # @dev ERC165 interface ID of EIP4671 Delegate
 EIP_4671_DELEGATE_INTERFACE_ID: constant(Bytes[32]) = b"0\xbf\x86\x8c"
@@ -200,7 +200,7 @@ def delegate(operator: address, recipient: address) -> bool:
 
 
 @external
-def delegateBatch(operators: DynArray[address, 3], recipients: DynArray[address, 3]) -> bool:
+def delegateBatch(operators: DynArray[address, BATCH_SIZE], recipients: DynArray[address, BATCH_SIZE]) -> bool:
 	"""
 	@notice Grant one-time minting right to a list of `operators` for a corresponding list of `owners`
 					An allowed operator can call the function to mint a token.
@@ -266,7 +266,7 @@ def mint(recipient: address, tokenURI: String[64]) -> bool:
 
 
 @external
-def mintBatch(recipients: DynArray[address, 3], tokenURIs: DynArray[String[64], 3]) -> bool:
+def mintBatch(recipients: DynArray[address, BATCH_SIZE], tokenURIs: DynArray[String[64], BATCH_SIZE]) -> bool:
 	"""
 	@notice Mint tokens to multiple addresses. Caller must have the right to mint for all owners.
 	@dev External function to mint tokens in batches.
