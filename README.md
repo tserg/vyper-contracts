@@ -16,6 +16,10 @@ CAUTION: Not meant for production use.
 - `EIP4494.vy`: `ERC721.vy` with implementation of EIP-4494 (approval for transfer by signature).
 - `VickreyAuction.vy`: A simple Vickrey auction (winning bidder pays second highest bid).
 - `VickreyAuctionERC721.vy`: Extension of `VickreyAuction.vy` with ERC-721 non-fungible token held in escrow by auction contract.
+- EIP-4671
+	- `NTT.vy`: Implementation of EIP-4671 Non-Tradable Token Standard.
+	- `NTTDelegate.vy`: Implementation of EIP-4671 Non-Tradable Token Standard with
+		delegation and batch minting.
 
 # Testing
 
