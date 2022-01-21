@@ -1,4 +1,4 @@
-# @version ^0.3.0
+# @version ^0.3.2
 
 """
 @title EIP-4671 Non-Tradable Token
@@ -52,6 +52,10 @@ ERC165_INTERFACE_ID: constant(Bytes[32]) = b"\x01\xff\xc9\xa7"
 # @dev ERC165 interface ID of EIP4671
 EIP_4671_INTERFACE_ID: constant(Bytes[32]) = b"\xd2K\xe28"
 
+# @dev ERC165 interface ID of EIP4671Metadata
+
+EIP_4671_METADATA_INTERFACE_ID: constant(Bytes[32]) = b"z\xf9&7"
+
 # @dev Maximum number of tokens that can be issued for an address
 # 	   This is meant to overcome Vyper's feature of limiting range iteration and
 #	   can be set to an arbitrary high value.
@@ -93,7 +97,6 @@ def _setTokenURI(_owner: address, _index: uint256, _tokenURI: String[64]):
 def _mint(_to: address, _tokenURI: String[64]):
 	"""
 	@dev Internal function to mint tokens
-		 Throws if `_to` is ZERO_ADDRESS.
 	@param _to The address that will receive the minted token.
 	@param _tokenURI The token URI
 	"""
@@ -131,7 +134,8 @@ def _supportsInterface(_interfaceID: Bytes[4]) -> bool:
 	@return A boolean that indicates if the interface is supported
 	"""
 	return _interfaceID == ERC165_INTERFACE_ID or \
-	 	_interfaceID == EIP_4671_INTERFACE_ID
+	 	_interfaceID == EIP_4671_INTERFACE_ID or \
+		_interfaceID == EIP_4671_METADATA_INTERFACE_ID
 
 
 ### External functions
@@ -141,6 +145,8 @@ def _supportsInterface(_interfaceID: Bytes[4]) -> bool:
 def invalidate(owner: address, index: uint256) -> bool:
 	"""
 	@notice Invalidate a token for an address
+	@dev Throws if `msg.sender` is not the owner of the contract
+			 Throws if the index is greater than the balance of the address
 	@param owner The address which token is to be invalidated
 	@param index The token ID of the address to be invalidated
 	@return A boolean that indicates if the operation was successful.
@@ -159,6 +165,9 @@ def invalidate(owner: address, index: uint256) -> bool:
 def mint(recipient: address, tokenURI: String[64]) -> bool:
 	"""
 	@notice Issue a new token to an address
+	@dev External function to mint a token.
+			 Throws if `_to` is ZERO_ADDRESS.
+			 Throws if `msg.sender` is not the owner of the contract
 	@param recipient The address that will receive the minted token
 	@param tokenURI The token URI
 	@return A boolean that indicates if the operation was successful.
@@ -166,7 +175,7 @@ def mint(recipient: address, tokenURI: String[64]) -> bool:
 	# Throws if owner is not the sender
 	assert msg.sender == self.owner, "Only owner is authorised to mint"
 	# Throws if `_to` is zero address
-	assert recipient != ZERO_ADDRESS
+	assert recipient != ZERO_ADDRESS, "Invalid address"
 
 	self._mint(recipient, tokenURI)
 	return True
@@ -249,6 +258,7 @@ def isValid(owner: address, index: uint256) -> bool:
 def tokenURI(owner: address, index: uint256) -> String[128]:
 	"""
 	@notice URI to query to get the token's metadata
+	@dev Throws if the index is greater than the balance of the address
 	@param owner Address of the token's owner
 	@param index Index of the token
 	@return URI for the token
