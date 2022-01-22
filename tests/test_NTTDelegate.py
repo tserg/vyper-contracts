@@ -280,6 +280,13 @@ def test_delegate_batch_mint(accounts, ntt, delegate_batch):
 
     assert ntt.canMint(accounts[1], accounts[2]) == False
 
+    with reverts("Address is not authorised to mint"):
+        ntt.mint(
+            accounts[2],
+            '/invalid.json',
+            {'from': accounts[1]}
+        )
+
     tx2 = ntt.mint(
         accounts[3],
         '/2.json',
@@ -300,6 +307,13 @@ def test_delegate_batch_mint(accounts, ntt, delegate_batch):
 
     assert ntt.canMint(accounts[2], accounts[3]) == False
 
+    with reverts("Address is not authorised to mint"):
+        ntt.mint(
+            accounts[3],
+            '/invalid.json',
+            {'from': accounts[2]}
+        )
+
     tx3 = ntt.mint(
         accounts[4],
         '/3.json',
@@ -319,6 +333,13 @@ def test_delegate_batch_mint(accounts, ntt, delegate_batch):
     assert ntt.tokenURI(accounts[4], 1) == "https://ntt.com/3.json"
 
     assert ntt.canMint(accounts[3], accounts[4]) == False
+
+    with reverts("Address is not authorised to mint"):
+        ntt.mint(
+            accounts[4],
+            '/invalid.json',
+            {'from': accounts[3]}
+        )
 
 
 def test_delegate_batch_2(accounts, ntt, delegate_batch_2):
@@ -369,6 +390,13 @@ def test_mint_batch(accounts, ntt, delegate_batch_2):
     assert ntt.tokenURI(accounts[3], 1) == "https://ntt.com/2.json"
 
     assert ntt.canMint(accounts[1], accounts[3]) == False
+
+    with reverts("Address is not authorised to mint"):
+        ntt.mintBatch(
+            [accounts[2], accounts[3], ZERO_ADDRESS],
+            ['/1.json', '/2.json', ''],
+            {'from': accounts[1]}
+        )
 
 
 def test_mint_batch_owner(accounts, ntt):
