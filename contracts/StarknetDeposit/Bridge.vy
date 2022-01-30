@@ -17,14 +17,14 @@ from vyper.interfaces import ERC20
 interface IStarknetCore:
 
 	def sendMessageToL2(
-			to_address: uint256,
-			selector: uint256,
-			payload: uint256[4]
+		to_address: uint256,
+		selector: uint256,
+		payload: uint256[4]
 	) -> bytes32: nonpayable
 
 	def consumeMessageFromL2(
-			fromAddress: uint256,
-			payload: uint256[3]
+		fromAddress: uint256,
+		payload: uint256[3]
 	) -> bytes32: nonpayable
 
 # @dev Address of ERC-20 token
@@ -59,30 +59,32 @@ def withdraw(
 ):
 	"""
 	@notice Withdraw from the contract after the equivalent withdrawal transaction
-					on Starknet is `ACCEPTED_ON_L1`
+			on Starknet is `ACCEPTED_ON_L1`
 	@param l2_contract_address Address of the Starknet contract
 	@param user_l2_address Address of the user on Starknet
 	@param amount Amount to be withdrawn
 	"""
+	# Custom workaround pending merging of PR #2603
+	# [https://github.com/vyperlang/vyper/pull/2603]
 	_message_withdraw: uint256 = MESSAGE_WITHDRAW
 	_offset: uint256 = 64
 	_payload_size: uint256 = 4
 
 	payload: Bytes[228] = _abi_encode(
-			l2_contract_address,
-			_offset,
-			_payload_size,
-			_message_withdraw,
-			user_l2_address,
-			msg.sender,
-			amount,
-			method_id=method_id("consumeMessageFromL2(uint256,uint256[])")
+		l2_contract_address,
+		_offset,
+		_payload_size,
+		_message_withdraw,
+		user_l2_address,
+		msg.sender,
+		amount,
+		method_id=method_id("consumeMessageFromL2(uint256,uint256[])")
 	)
 
 	response: Bytes[32] = raw_call(
-			self.sn_core.address,
-			payload,
-			max_outsize=32
+		self.sn_core.address,
+		payload,
+		max_outsize=32
 	)
 
 	self.token.transfer(msg.sender, amount)
@@ -98,12 +100,12 @@ def deposit(
 	"""
 	@notice Deposit to the contract for message transmission to Starknet contract
 	@dev Throws if `amount` is equal to or greater than MAX_AMOUNT
-			 Throws if contract is not approved to transfer the `amount` of ERC-20
+		 Throws if contract is not approved to transfer the `amount` of ERC-20
 	@param l2_contract_address Address of the Starknet contract
 	@param user_l2_address Address of the user on Starknet
 	@param amount Amount to be deposited
 	@return Response of the call to Starknet core contract to transmit message to
-				  Starknet
+	        Starknet
 	"""
 	assert amount < MAX_AMOUNT, "Invalid amount"
 	assert self.token.allowance(msg.sender, self) >= amount, "Contract is not approved"
@@ -119,19 +121,19 @@ def deposit(
 	_deposit_selector: uint256 = DEPOSIT_SELECTOR
 
 	payload: Bytes[196] = _abi_encode(
-			l2_contract_address,
-			_deposit_selector,
-			_offset,
-			_payload_size,
-			user_l2_address,
-			amount,
-			method_id=method_id("sendMessageToL2(uint256,uint256,uint256[])")
+		l2_contract_address,
+		_deposit_selector,
+		_offset,
+		_payload_size,
+		user_l2_address,
+		amount,
+		method_id=method_id("sendMessageToL2(uint256,uint256,uint256[])")
 	)
 
 	response: Bytes[32] = raw_call(
-			self.sn_core.address,
-			payload,
-			max_outsize=32
+		self.sn_core.address,
+		payload,
+		max_outsize=32
 	)
 
 	return response
