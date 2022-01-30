@@ -25,7 +25,7 @@ For Cairo contracts:
 	- `NTT.vy`: Implementation of EIP-4671 Non-Tradable Token Standard.
 	- `NTTDelegate.vy`: Implementation of EIP-4671 Non-Tradable Token Standard with
 		delegation and batch minting.
-- StarknetDeposit: Vyper implementation of a modified Starknet's L1-L2 (bridge)[https://www.cairo-lang.org/docs/hello_starknet/l1l2.html] for ERC-20. See `README.md` in folder for more details.
+- StarknetDeposit: Vyper implementation of a modified Starknet's L1-L2 [bridge](https://www.cairo-lang.org/docs/hello_starknet/l1l2.html) for ERC-20. See `README.md` in folder for more details.
 
 # Testing
 
