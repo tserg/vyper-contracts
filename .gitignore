@@ -9,3 +9,5 @@ reports/
 .gitattributes
 .pytest_cache
 /build
+
+*.json
