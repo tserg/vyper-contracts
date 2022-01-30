@@ -6,8 +6,13 @@ CAUTION: Not meant for production use.
 
 # Dependencies
 
+For Vyper contracts:
 - [Vyper](https://github.com/vyperlang/vyper)
 - [Brownie](https://github.com/eth-brownie/brownie)
+
+For Cairo contracts:
+- [Cairo](https://www.cairo-lang.org/docs/quickstart.html)
+- [Starknet](https://www.cairo-lang.org/docs/hello_starknet/account_setup.html#installation)
 
 # Directory
 
@@ -20,6 +25,7 @@ CAUTION: Not meant for production use.
 	- `NTT.vy`: Implementation of EIP-4671 Non-Tradable Token Standard.
 	- `NTTDelegate.vy`: Implementation of EIP-4671 Non-Tradable Token Standard with
 		delegation and batch minting.
+- StarknetDeposit: Vyper implementation of a modified Starknet's L1-L2 (bridge)[https://www.cairo-lang.org/docs/hello_starknet/l1l2.html] for ERC-20. See `README.md` in folder for more details.
 
 # Testing
 
