@@ -148,7 +148,8 @@ def _supportsInterface(_interfaceID: Bytes[4]) -> bool:
 	"""
 	return _interfaceID == ERC165_INTERFACE_ID or \
 	 	_interfaceID == EIP_4671_INTERFACE_ID or \
-		_interfaceID == EIP_4671_METADATA_INTERFACE_ID
+		_interfaceID == EIP_4671_METADATA_INTERFACE_ID or \
+		_interfaceID == EIP_4671_ENUMERABLE_INTERFACE_ID
 
 
 ### External functions
@@ -159,14 +160,14 @@ def invalidate(tokenId: uint256) -> bool:
 	"""
 	@notice Invalidate a token
 	@dev Throws if `msg.sender` is not the owner of the contract
-			 Throws if the index is greater than the total supply
+		 Throws if the index is greater than the total supply
 	@param tokenId The token ID to be invalidated
 	@return A boolean that indicates if the operation was successful.
 	"""
 	# Throws if owner is not the sender
 	assert msg.sender == self.owner, "Only owner is authorised to invalidate"
 
-	# Throws if index does not exist
+	# Throws if token ID does not exist
 	assert tokenId <= self.totalSupply, "Token ID does not exist"
 
 	self._invalidate(tokenId)
@@ -178,8 +179,8 @@ def mint(recipient: address, tokenURI: String[64]) -> bool:
 	"""
 	@notice Issue a new token to an address
 	@dev External function to mint a token.
-			 Throws if `_to` is ZERO_ADDRESS.
-			 Throws if `msg.sender` is not the owner of the contract
+		 Throws if `_to` is ZERO_ADDRESS.
+		 Throws if `msg.sender` is not the owner of the contract
 	@param recipient The address that will receive the minted token
 	@param tokenURI The token URI
 	@return A boolean that indicates if the operation was successful.
@@ -205,6 +206,18 @@ def supportsInterface(_interfaceID: bytes32) -> bool:
 
 
 ### External view functions
+
+
+@external
+@view
+def ownerOf(tokenId: uint256) -> address:
+	"""
+	@notice Get the owner of a token
+	@param tokenId The token ID to check for
+	@return Address that owns the token ID
+	"""
+	assert tokenId <= self.totalSupply, "Token ID does not exist"
+	return self.tokenIdToOwner[tokenId]
 
 
 @external
