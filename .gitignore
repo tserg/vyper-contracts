@@ -6,7 +6,6 @@ build/
 reports/
 
 .git
-.gitattributes
 .pytest_cache
 /build
 
