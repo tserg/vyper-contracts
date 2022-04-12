@@ -186,7 +186,7 @@ def __init__(
 		_maxSupply: uint256,
 		_minter: address,
 		_beneficiary: address
-	) -> bool:
+	):
 	"""
     @notice Initialize the NFT contract
 	@dev Separate from `__init__` method to facilitate factory pattern in `ConditionalNFTFactory`
@@ -215,7 +215,7 @@ def __init__(
 			self
 		)
 	)
-	return True
+
 
 @view
 @internal
