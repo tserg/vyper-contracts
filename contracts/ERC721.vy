@@ -1,4 +1,4 @@
-# @version ^0.3.0
+# @version ^0.3.3
 
 # Adapted from official ERC721 Vyper example at https://github.com/vyperlang/vyper/blob/master/examples/tokens/ERC721.vy
 
@@ -11,35 +11,37 @@ implements: ERC721
 # Interface for the contract called by safeTransferFrom()
 interface ERC721Receiver:
     def onERC721Received(
-            _operator: address,
-            _from: address,
-            _tokenId: uint256,
-            _data: Bytes[1024]
-        ) -> bytes32: view
+        _operator: address,
+        _from: address,
+        _tokenId: uint256,
+        _data: Bytes[1024]
+    ) -> bytes32: view
+
 
 # Interface for ERC721Metadata
 
 interface ERC721Metadata:
-	def name() -> String[64]: view
+    def name() -> String[64]: view
 
-	def symbol() -> String[32]: view
+    def symbol() -> String[32]: view
 
-	def tokenURI(
-		_tokenId: uint256
-	) -> String[128]: view
+    def tokenURI(
+        _tokenId: uint256
+    ) -> String[128]: view
+
 
 interface ERC721Enumerable:
 
-	def totalSupply() -> uint256: view
+    def totalSupply() -> uint256: view
 
-	def tokenByIndex(
-		_index: uint256
-	) -> uint256: view
+    def tokenByIndex(
+        _index: uint256
+    ) -> uint256: view
 
-	def tokenOfOwnerByIndex(
-		_address: address,
-		_index: uint256
-	) -> uint256: view
+    def tokenOfOwnerByIndex(
+        _address: address,
+        _index: uint256
+    ) -> uint256: view
 
 # @dev Emits when ownership of any NFT changes by any mechanism. This event emits when NFTs are
 #      created (`from` == 0) and destroyed (`to` == 0). Exception: during contract creation, any
@@ -123,39 +125,39 @@ idToURI: HashMap[uint256, String[64]]
 minter: address
 
 # @dev ERC165 interface ID of ERC165
-ERC165_INTERFACE_ID: constant(Bytes[32]) = b"\x01\xff\xc9\xa7"
+ERC165_INTERFACE_ID: constant(bytes4) = 0x01ffc9a7
 
 # @dev ERC165 interface ID of ERC721
-ERC721_INTERFACE_ID: constant(Bytes[32]) = b"\x80\xac\x58\xcd"
+ERC721_INTERFACE_ID: constant(bytes4) = 0x80ac58cd
 
 # @dev ERC165 interface ID of ERC721Metadata
-ERC721_METADATA_INTERFACE_ID: constant(Bytes[32]) = b'[^\x13\x9f'
+ERC721_METADATA_INTERFACE_ID: constant(bytes4) =0x5b5e139f
 
 # @dev ERC165 interface ID of ERC721Enumerable
-ERC721_ENUMERABLE_INTERFACE_ID: constant(Bytes[32]) = b'x\x0e\x9dc'
+ERC721_ENUMERABLE_INTERFACE_ID: constant(bytes4) = 0x780e9d63
 
 # @dev ERC165 interface ID of ERC721TokenReceiver
-ERC721_TOKEN_RECEIVER_INTERFACE_ID: constant(Bytes[32]) = b'\x15\x0bz\x02'
+ERC721_TOKEN_RECEIVER_INTERFACE_ID: constant(bytes4) = 0x150b7a02
 
 
 @external
 def __init__(
-	    _name: String[64],
-		_symbol: String[32],
-		_baseURI: String[64],
-		_maxSupply: uint256,
-		_minter: address,
-		_beneficiary: address
-	):
+    _name: String[64],
+    _symbol: String[32],
+    _baseURI: String[64],
+    _maxSupply: uint256,
+    _minter: address,
+    _beneficiary: address
+):
     """
     @notice Initialize the NFT contract
-	@dev Separate from `__init__` method to facilitate factory pattern in `ConditionalNFTFactory`
-	@param _name Name of the token
-	@param _symbol Symbol of the token
-	@param _baseURI Base URI of the token metadata
-	@param _maxSupply Maximum supply of the token
-	@param _minter Address which can mint tokens
-	@param _beneficiary Address which funds will be withdrawn to
+    @dev Separate from `__init__` method to facilitate factory pattern in `ConditionalNFTFactory`
+    @param _name Name of the token
+    @param _symbol Symbol of the token
+    @param _baseURI Base URI of the token metadata
+    @param _maxSupply Maximum supply of the token
+    @param _minter Address which can mint tokens
+    @param _beneficiary Address which funds will be withdrawn to
     """
     self.minter = _minter
     self.tokenName = _name
@@ -170,52 +172,39 @@ def __init__(
 @view
 @internal
 def _balanceOf(_owner: address) -> uint256:
-	"""
-	@dev 	Returns number of tokens held by '_owner'
-			Throws if '_owner' is ZERO_ADDRESS.
-	@param 	_owner Address to query
-	"""
-	assert _owner != ZERO_ADDRESS
-	return self.ownerToNFTokenCount[_owner]
+    """
+    @dev 	Returns number of tokens held by '_owner'
+    		Throws if '_owner' is ZERO_ADDRESS.
+    @param 	_owner Address to query
+    """
+    assert _owner != ZERO_ADDRESS
+    return self.ownerToNFTokenCount[_owner]
+
 
 @view
 @internal
 def _totalSupply() -> uint256:
-	"""
-	@dev Returns total supply
-	"""
-	return self.tokenId - self.burntCount
-
-@view
-@internal
-def _supportsInterface(_interfaceID: Bytes[4]) -> bool:
     """
-    @dev Internal function to check interface
-	@param _interfaceID Id of the interface in Bytes[4]
-	"""
+    @dev Returns total supply
+    """
+    return self.tokenId - self.burntCount
 
-    return (_interfaceID == ERC165_INTERFACE_ID) or (_interfaceID == ERC721_INTERFACE_ID) or \
-		(_interfaceID == ERC721_METADATA_INTERFACE_ID) or (_interfaceID == ERC721_ENUMERABLE_INTERFACE_ID) or \
-		(_interfaceID == ERC721_TOKEN_RECEIVER_INTERFACE_ID)
 
 @view
 @external
-def supportsInterface(_interfaceID: bytes32) -> bool:
+def supportsInterface(_interfaceID: bytes4) -> bool:
     """
     @dev Interface identification is specified in ERC-165.
     @param _interfaceID Id of the interface
     """
-    return self._supportsInterface(slice(_interfaceID, 28, 4))
+    return _interfaceID in [
+        ERC165_INTERFACE_ID,
+        ERC721_INTERFACE_ID,
+        ERC721_METADATA_INTERFACE_ID,
+        ERC721_ENUMERABLE_INTERFACE_ID,
+        ERC721_TOKEN_RECEIVER_INTERFACE_ID
+    ]
 
-@external
-@payable
-def __default__() -> bool:
-    if (slice(msg.data, 0, 4) == ERC165_INTERFACE_ID) or (slice(msg.data, 0, 4) == ERC721_INTERFACE_ID) or \
-		(slice(msg.data, 0, 4) == ERC721_METADATA_INTERFACE_ID) or (slice(msg.data, 0, 4) == ERC721_ENUMERABLE_INTERFACE_ID) or \
-		(slice(msg.data, 0, 4) == ERC721_TOKEN_RECEIVER_INTERFACE_ID):
-        return self._supportsInterface(slice(msg.data, 4, 4))
-    else:
-        return False
 
 ### VIEW FUNCTIONS ###
 
@@ -268,74 +257,79 @@ def isApprovedForAll(_owner: address, _operator: address) -> bool:
     """
     return (self.ownerToOperators[_owner])[_operator]
 
+
 @view
 @external
 def name() -> String[64]:
-	"""
-	@dev Get the name of the token
-	"""
-	return self.tokenName
+    """
+    @dev Get the name of the token
+    """
+    return self.tokenName
+
 
 @view
 @external
 def symbol() -> String[32]:
-	"""
-	@dev Get the symbol of the token
-	"""
-	return self.tokenSymbol
+    """
+    @dev Get the symbol of the token
+    """
+    return self.tokenSymbol
+
 
 @view
 @external
 def tokenURI(_tokenId: uint256) -> String[128]:
-	"""
-	@dev Returns the URI for the token ID
-	@param _tokenId id of the ERC721 token
-	"""
-	assert self.idToOwner[_tokenId] != ZERO_ADDRESS
+    """
+    @dev Returns the URI for the token ID
+    @param _tokenId id of the ERC721 token
+    """
+    assert self.idToOwner[_tokenId] != ZERO_ADDRESS
 
-	return concat(
-			self.baseTokenURI,
-			self.idToURI[_tokenId]
-		)
+    return concat(
+        self.baseTokenURI,
+        self.idToURI[_tokenId]
+    )
+
 
 @view
 @external
 def totalSupply() -> uint256:
-	"""
-	@dev Returns total supply
-	"""
-	return self._totalSupply()
+    """
+    @dev Returns total supply
+    """
+    return self._totalSupply()
+
 
 @view
 @external
 def tokenByIndex(_index: uint256) -> uint256:
-	"""
-	@dev Get token by index
-		Throws if '_index' is larger than totalSupply()
-	"""
-	assert _index <= self._totalSupply() - self.burntCount
-	assert _index > 0
+    """
+    @dev Get token by index
+         Throws if '_index' is larger than totalSupply()
+    """
+    assert _index <= self._totalSupply() - self.burntCount
+    assert _index > 0
 
-	return self.indexToTokenId[_index]
+    return self.indexToTokenId[_index]
 
 @view
 @external
 def tokenOfOwnerByIndex(_owner: address, _index: uint256) -> uint256:
-	"""
-	@dev	Get token by index
-			Throws if '_index' is larger than balance of '_owner'
-			Throws if value has been set to 0
-	"""
-	assert _index <= self._balanceOf(_owner)
+    """
+    @dev Get token by index
+         Throws if '_index' is larger than balance of '_owner'
+         Throws if value has been set to 0
+    """
+    assert _index <= self._balanceOf(_owner)
+    assert self.ownerToNFTokenIdList[_owner][_index] != 0
 
-	assert self.ownerToNFTokenIdList[_owner][_index] != 0
-	return self.ownerToNFTokenIdList[_owner][_index]
+    return self.ownerToNFTokenIdList[_owner][_index]
 
 
 @view
 @external
 def baseURI() -> String[64]:
-	return self.baseTokenURI
+    return self.baseTokenURI
 
 
 ### TRANSFER FUNCTION HELPERS ###
@@ -356,17 +350,18 @@ def _isApprovedOrOwner(_spender: address, _tokenId: uint256) -> bool:
     spenderIsApprovedForAll: bool = (self.ownerToOperators[owner])[_spender]
     return (spenderIsOwner or spenderIsApproved) or spenderIsApprovedForAll
 
+
 @internal
 def _addTokenToOwnerList(_to: address, _tokenId: uint256):
-	"""
-	@dev Add a NFT to an index mapping to a given address
-	@param to address of the receiver
-	@param tokenId uint256 ID Of the token to be added
-	"""
-	current_count: uint256 = self._balanceOf(_to)
+    """
+    @dev Add a NFT to an index mapping to a given address
+    @param to address of the receiver
+    @param tokenId uint256 ID Of the token to be added
+    """
+    current_count: uint256 = self._balanceOf(_to)
 
-	self.ownerToNFTokenIdList[_to][current_count] = _tokenId
-	self.tokenToOwnerIndex[_tokenId] = current_count
+    self.ownerToNFTokenIdList[_to][current_count] = _tokenId
+    self.tokenToOwnerIndex[_tokenId] = current_count
 
 
 @internal
@@ -400,6 +395,7 @@ def _removeTokenFromOwnerList(_from: address, _tokenId: uint256):
         self.ownerToNFTokenIdList[_from][current_count] = 0
         # update tokenToOwnerIndex
         self.tokenToOwnerIndex[_tokenId] = 0
+
 
 @internal
 def _addTokenTo(_to: address, _tokenId: uint256):
@@ -474,13 +470,13 @@ def _transferFrom(_from: address, _to: address, _tokenId: uint256, _sender: addr
 
 @internal
 def _setTokenURI(_tokenId: uint256, _tokenURI: String[64]):
-	"""
-	@dev Set the URI for a token
-		 Throws if the token ID does not exist
-	"""
-	assert self.idToOwner[_tokenId] != ZERO_ADDRESS
+    """
+    @dev Set the URI for a token
+         Throws if the token ID does not exist
+    """
+    assert self.idToOwner[_tokenId] != ZERO_ADDRESS
 
-	self.idToURI[_tokenId] = _tokenURI
+    self.idToURI[_tokenId] = _tokenURI
 
 ### TRANSFER FUNCTIONS ###
 
@@ -574,43 +570,51 @@ def setApprovalForAll(_operator: address, _approved: bool):
 
 @internal
 def _mint(_to: address, _tokenURI: String[64]) -> bool:
-	"""
-	@dev Function to mint tokens
-		 Throws if `_to` is zero address.
-		 Throws if `_tokenId` is owned by someone.
-	@param _to The address that will receive the minted tokens.
-	@param _tokenURI The token URI
-	@return A boolean that indicates if the operation was successful.
-	"""
-	# Throws if `_to` is zero address
-	assert _to != ZERO_ADDRESS
-	# Throws if '_tokenId' is equal to or greater than 'self.maxSupply'
-	assert self.tokenId < self.maxSupply
-	# Add NFT. Throws if `_tokenId` is owned by someone
-	self.tokenId += 1
-	_tokenId: uint256 = self.tokenId
-	self._addTokenTo(_to, _tokenId)
-	current_index: uint256 = self._totalSupply() - self.burntCount
-	self.indexToTokenId[current_index] = _tokenId
-	self.tokenIdToIndex[_tokenId] = current_index
-	self._setTokenURI(_tokenId, _tokenURI)
-	log Transfer(ZERO_ADDRESS, _to, _tokenId)
+    """
+    @dev Function to mint tokens
+         Throws if `_to` is zero address.
+         Throws if `_tokenId` is owned by someone.
+    @param _to The address that will receive the minted tokens.
+    @param _tokenURI The token URI
+    @return A boolean that indicates if the operation was successful.
+    """
+    # Throws if `_to` is zero address
+    assert _to != ZERO_ADDRESS
 
-	return True
+    # Throws if '_tokenId' is equal to or greater than 'self.maxSupply'
+    assert self.tokenId < self.maxSupply
+
+    # Add NFT. Throws if `_tokenId` is owned by someone
+    self.tokenId += 1
+    _tokenId: uint256 = self.tokenId
+
+    self._addTokenTo(_to, _tokenId)
+    current_index: uint256 = self._totalSupply() - self.burntCount
+
+    self.indexToTokenId[current_index] = _tokenId
+    self.tokenIdToIndex[_tokenId] = current_index
+    self._setTokenURI(_tokenId, _tokenURI)
+    log Transfer(ZERO_ADDRESS, _to, _tokenId)
+
+    return True
+
 
 @payable
 @external
 def mint(_to: address, _tokenURI: String[64]) -> bool:
-	"""
-	@dev Function to mint a token
-	@return Boolean indicating if operation was successful
-	"""
-	# Throws if `msg.sender` is not the minter
-	assert msg.sender == self.minter
-	# Throws if `_to` is zero address
-	assert _to != ZERO_ADDRESS
-	self._mint(_to, _tokenURI)
-	return True
+    """
+    @dev Function to mint a token
+    @return Boolean indicating if operation was successful
+    """
+    # Throws if `msg.sender` is not the minter
+    assert msg.sender == self.minter
+
+    # Throws if `_to` is zero address
+    assert _to != ZERO_ADDRESS
+
+    self._mint(_to, _tokenURI)
+    return True
+
 
 @external
 def withdraw():
@@ -619,6 +623,7 @@ def withdraw():
          Throws if `msg.sender` is not `self.admin`
     """
     send(self.beneficiary, self.balance)
+
 
 @external
 def burn(_tokenId: uint256):
