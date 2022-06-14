@@ -24,7 +24,7 @@ For Cairo contracts:
 - `EIP4494.vy`: `ERC721.vy` with implementation of EIP-4494 (approval for transfer by signature).
 - `VickreyAuction.vy`: A simple Vickrey auction (winning bidder pays second highest bid).
 - `VickreyAuctionERC721.vy`: Extension of `VickreyAuction.vy` with ERC-721 non-fungible token held in escrow by auction contract.
-- EIP-4671 (a.k.a Soulbound)
+- EIP-4671 (a.k.a Soulbound) [outdated implementation]
 	- `NTT.vy`: Implementation of EIP-4671 Non-Tradable Token Standard with Metadata and Enumerable extensions.
 	- `NTTDelegate.vy`: Implementation of EIP-4671 Non-Tradable Token Standard with Metadata, Enumerable and Delegation extensions.
 - StarknetDeposit: Vyper implementation of a modified Starknet's L1-L2 [bridge](https://www.cairo-lang.org/docs/hello_starknet/l1l2.html) for ERC-20. See `README.md` in folder for more details.
