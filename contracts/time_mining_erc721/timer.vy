@@ -2,7 +2,7 @@
 
 # Adapted from official ERC721 Vyper example at https://github.com/vyperlang/vyper/blob/master/examples/tokens/ERC721.vy
 
-# @dev Implementation of ERC-721 non-fungible token standard with time-mining
+# @dev Implementation of ERC-721 non-fungible token standard.
 
 from vyper.interfaces import ERC721
 
@@ -16,6 +16,12 @@ interface ERC721Receiver:
         _tokenId: uint256,
         _data: Bytes[1024]
     ) -> bytes4: view
+
+interface ERC20Mintable:
+    def mint(
+        recipient: address,
+        amount: uint256
+    ): nonpayable
 
 
 # Interface for ERC721Metadata
@@ -121,8 +127,11 @@ ownerToOperators: HashMap[address, HashMap[address, bool]]
 #@dev Maping from NFT ID to token URI
 idToURI: HashMap[uint256, String[64]]
 
-# @dev Mapping from address to earliest timestamp it holds a token
-addressToEarliestTimestamp: public(HashMap[address, uint256])
+# @dev Mapping from address to last claimed timestamp
+address_to_last_claimed: public(HashMap[address, uint256])
+
+# @dev Time-mineable token
+token: address
 
 # @dev Address of minter, who can mint a token
 minter: address
@@ -363,8 +372,8 @@ def _addTokenToOwnerList(_to: address, _tokenId: uint256):
     """
     current_count: uint256 = self._balanceOf(_to)
 
-    if self.addressToEarliestTimestamp[_to] == 0:
-        self.addressToEarliestTimestamp[_to] = block.timestamp
+    if self.address_to_last_claimed[_to] == 0:
+        self.address_to_last_claimed[_to] = block.timestamp
 
     self.ownerToNFTokenIdList[_to][current_count] = _tokenId
     self.tokenToOwnerIndex[_tokenId] = current_count
@@ -439,7 +448,7 @@ def _removeTokenFrom(_from: address, _tokenId: uint256):
 
     # Set earliest timestamp to 0 if balance is now 0
     if new_count == 0:
-        self.addressToEarliestTimestamp[_from] = 0
+        self.address_to_last_claimed[_from] = 0
 
 
 @internal
@@ -667,3 +676,28 @@ def burn(_tokenId: uint256):
     self.burntCount += 1
 
     log Transfer(owner, ZERO_ADDRESS, _tokenId)
+
+
+# Additional functions for time mining
+
+@external
+def set_token_address(token_addr: address):
+    """
+    @dev Set the address for the time-mineable token
+    @param token_addr Address of the ERC20 token that is time-mineable
+    """
+    assert token_addr != empty(address), "Invalid token address"
+    self.token = token_addr
+
+
+@external
+def claim_rewards():
+    """
+    @dev Claim the accrued ERC20 mined by the period of holding.
+    """
+    last_claimed: uint256 = self.address_to_last_claimed[msg.sender]
+    assert last_claimed != 0, "Nothing to claim"
+
+    amt: uint256 = block.timestamp - last_claimed
+    token_addr: address = self.token
+    ERC20Mintable(token_addr).mint(msg.sender, as_wei_value(amt, 'ether'))

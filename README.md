@@ -28,6 +28,9 @@ For Cairo contracts:
 	- `NTT.vy`: Implementation of EIP-4671 Non-Tradable Token Standard with Metadata and Enumerable extensions.
 	- `NTTDelegate.vy`: Implementation of EIP-4671 Non-Tradable Token Standard with Metadata, Enumerable and Delegation extensions.
 - StarknetDeposit: Vyper implementation of a modified Starknet's L1-L2 [bridge](https://www.cairo-lang.org/docs/hello_starknet/l1l2.html) for ERC-20. See `README.md` in folder for more details.
+- Time-mining ERC721: Mine ERC20 tokens based on duration of possession of any NFT in wallet address.
+	- `ERC20_mintable.vy`: Modified ERC20 that takes in a minter address in constructor.
+	- `timer.vy`: Modified ERC721 that sets an ERC20 address it has mint permissions to, and allows holders to claim rewards based on duration of possession of any NFT.
 
 # Testing
 
