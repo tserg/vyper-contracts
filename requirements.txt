@@ -7,6 +7,7 @@ attrs==21.4.0
 backcall==0.2.0
 base58==1.0.3
 bitarray==1.2.2
+black==22.6.0
 cached-property==1.5.2
 certifi @ file:///opt/conda/conda-bld/certifi_1655968806487/work/certifi
 cffi==1.15.1
@@ -15,8 +16,10 @@ click==8.1.3
 colorama==0.4.5
 commonmark==0.9.1
 cytoolz==0.11.2
+dataclassy==0.11.1
 decorator==5.1.1
 Deprecated==1.2.13
+eip712==0.1.0
 eth-abi==2.1.1
 eth-account==0.5.7
 eth-ape==0.3.4
@@ -31,6 +34,7 @@ eth-utils==1.10.0
 ethpm-types==0.3.2
 evm-trace==0.1.0a6
 executing==0.8.3
+flake8==4.0.1
 frozenlist==1.3.0
 hexbytes==0.2.2
 idna==3.3
@@ -38,10 +42,12 @@ importlib-metadata==4.12.0
 iniconfig==1.1.1
 ipfshttpclient==0.8.0a2
 ipython==8.4.0
+isort==5.10.1
 jedi==0.18.1
 jsonschema==4.6.1
 lru-dict==1.1.7
 matplotlib-inline==0.1.3
+mccabe==0.6.1
 morphys==1.0
 multiaddr==0.0.9
 multidict==6.0.2
@@ -52,8 +58,10 @@ packaging==20.9
 pandas==1.4.3
 parsimonious==0.8.1
 parso==0.8.3
+pathspec==0.9.0
 pexpect==4.8.0
 pickleshare==0.7.5
+platformdirs==2.5.2
 pluggy==0.13.1
 prompt-toolkit==3.0.30
 protobuf==3.20.1
@@ -67,10 +75,12 @@ py-geth==3.8.0
 py-multibase==1.0.3
 py-multicodec==0.2.1
 py-multihash==0.2.3
+pycodestyle==2.8.0
 pycparser==2.21
 pycryptodome==3.15.0
 pydantic==1.9.1
 pyethash==0.1.27
+pyflakes==2.4.0
 pygit2==1.9.2
 PyGithub==1.55
 Pygments==2.12.0
@@ -100,7 +110,7 @@ typing-extensions==3.10.0.2
 urllib3==1.26.9
 varint==1.0.2
 vvm==0.1.0
-vyper==0.3.3
+vyper==0.3.4
 wcwidth==0.2.5
 web3==5.29.2
 websockets==9.1
