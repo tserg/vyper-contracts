@@ -1,48 +1,47 @@
 import pytest
 
-from brownie import (
+from ape import (
+    accounts,
+    chain,
+    project,
     reverts,
-    ZERO_ADDRESS
 )
 
-@pytest.fixture(scope="module", autouse=True)
-def erc721(accounts, TimedERC721):
-    c = accounts[0].deploy(
-        TimedERC721,
+from tests.constants import ZERO_ADDRESS
+
+@pytest.fixture(scope="class", autouse=True)
+def erc721(accounts):
+    c = project.TimedERC721.deploy(
         "Test Token",
         "TST",
         "https://www.test.com/",
         100,
         accounts[0],
-        accounts[0]
+        accounts[0],
+        sender=accounts[0]
     )
 
     # Mint 1 token
     c.mint(
         accounts[0],
         '1.json',
-        {'from': accounts[0]}
+        sender=accounts[0]
     )
     yield c
 
 
-@pytest.fixture(scope="module", autouse="True")
-def tcs(accounts, erc721, TimeConditionalSoulbound):
-    c = accounts[0].deploy(
-        TimeConditionalSoulbound,
+@pytest.fixture(scope="class", autouse="True")
+def tcs(accounts, erc721):
+    c = project.TimeConditionalSoulbound.deploy(
         "Non-Tradable Token",
         "TCS",
         "https://tcs.com",
         100,
         erc721.address,
         1000,
+        sender=accounts[0]
     )
     yield c
-
-
-@pytest.fixture(autouse=True)
-def isolation(fn_isolation):
-    pass
 
 
 def test_start_state(erc721, tcs):
@@ -57,23 +56,24 @@ def test_invalid_mint(accounts, erc721, tcs):
         tcs.mint(
             accounts[0],
             "/1.json",
-            {'from': accounts[0]},
+            sender=accounts[0],
         )
 
 
 def test_valid_mint(accounts, chain, erc721, tcs):
 
-    chain.sleep(1001)
+    chain.mine(1001)
 
     tx = tcs.mint(
         accounts[0],
         "/1.json",
-        {'from': accounts[0]},
+        sender=accounts[0],
     )
 
-    assert len(tx.events) == 1
-    assert tx.events[0]["owner"] == accounts[0]
-    assert tx.events[0]["tokenId"] == 1
+    events = list(tx.decode_logs(tcs.Mint))
+    assert len(events) == 1
+    assert events[0].event_arguments["owner"] == accounts[0]
+    assert events[0].event_arguments["tokenId"] == 1
 
     assert tcs.total() == 1
     assert tcs.ownerOf(1) == accounts[0]

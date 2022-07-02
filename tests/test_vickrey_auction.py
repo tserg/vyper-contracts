@@ -1,35 +1,30 @@
 import pytest
 
-from brownie import (
+from ape import (
     accounts,
     chain,
+    project,
     reverts,
-    Wei,
 )
 
-@pytest.fixture(scope="module", autouse=True)
-def auction(accounts, VickreyAuction):
-    c = VickreyAuction.deploy(
-        Wei("1 ether"),
-        chain.time() + 100000,
-        {'from': accounts[0]}
+from eth_utils import to_wei
+
+@pytest.fixture(scope="class", autouse=True)
+def auction(accounts):
+    c = project.VickreyAuction.deploy(
+        to_wei(1, "ether"),
+        chain.pending_timestamp + 100,
+        sender=accounts[0]
     )
     yield c
-
-
-@pytest.fixture(autouse=True)
-def isolation(fn_isolation):
-    pass
 
 
 @pytest.fixture
 def a1_first_bid(accounts, auction):
 
     tx = auction.bid(
-        {
-            'from': accounts[1],
-            'value': Wei("1.5 ether")
-        }
+        sender=accounts[1],
+        value=to_wei(1.5, "ether")
     )
     return tx
 
@@ -38,10 +33,8 @@ def a1_first_bid(accounts, auction):
 def a1_second_bid(accounts, auction, a1_first_bid):
 
     tx = auction.bid(
-        {
-            'from': accounts[1],
-            'value': Wei("0.5 ether")
-        }
+        sender=accounts[1],
+        value=to_wei(0.5, "ether")
     )
 
     return tx
@@ -51,10 +44,8 @@ def a1_second_bid(accounts, auction, a1_first_bid):
 def a2_first_bid(accounts, auction, a1_second_bid):
 
     tx = auction.bid(
-        {
-            'from': accounts[2],
-            'value': Wei("3 ether")
-        }
+        sender=accounts[2],
+        value=to_wei(3, "ether")
     )
 
     return tx
@@ -63,110 +54,116 @@ def a2_first_bid(accounts, auction, a1_second_bid):
 @pytest.fixture
 def close_auction(accounts, chain, auction, a2_first_bid):
 
-    chain.sleep(100001)
+    chain.mine(100)
 
-    tx = auction.close({'from': accounts[0]})
+    tx = auction.close(sender=accounts[0])
 
     return tx
 
 
 def test_start_state(auction):
 
-    assert auction.get_highest_bid() == Wei("1 ether")
+    assert auction.get_highest_bid() == to_wei(1, "ether")
     assert auction.has_ended() == False
 
 
 def test_bid(accounts, auction, a1_first_bid):
 
-    assert len(a1_first_bid.events) == 1
-    assert a1_first_bid.events[0]['value'] == Wei("1.5 ether")
-    assert a1_first_bid.events[0]['bidder'] == accounts[1]
+    events = list(a1_first_bid.decode_logs(auction.Bid))
+    assert len(events) == 1
+    assert events[0].event_arguments['value'] == to_wei(1.5, "ether")
+    assert events[0].event_arguments['bidder'] == accounts[1]
 
-    assert auction.get_highest_bid() == Wei("1.5 ether")
-    assert auction.bids_to_bidder(Wei("1.5 ether")) == accounts[1]
+    assert auction.get_highest_bid() == to_wei(1.5, "ether")
+    assert auction.bids_to_bidder(to_wei(1.5, "ether")) == accounts[1]
 
 
 def test_cumulative_bid_1(accounts, auction, a1_second_bid):
 
-    assert len(a1_second_bid.events) == 1
-    assert auction.get_highest_bid() == Wei("2 ether")
-    assert a1_second_bid.events[0]['value'] == Wei("2 ether")
-    assert a1_second_bid.events[0]['bidder'] == accounts[1]
+    events = list(a1_second_bid.decode_logs(auction.Bid))
+    assert len(events) == 1
+    assert auction.get_highest_bid() == to_wei(2, "ether")
+    assert events[0].event_arguments['value'] == to_wei(2, "ether")
+    assert events[0].event_arguments['bidder'] == accounts[1]
 
-    assert auction.get_highest_bid() == Wei("2 ether")
-    assert auction.bids_to_bidder(Wei("2 ether")) == accounts[1]
+    assert auction.get_highest_bid() == to_wei(2, "ether")
+    assert auction.bids_to_bidder(to_wei(2, "ether")) == accounts[1]
 
 
 def test_competing_bid(accounts, auction, a2_first_bid):
 
-    assert len(a2_first_bid.events) == 1
-    assert a2_first_bid.events[0]['value'] == Wei("3 ether")
-    assert a2_first_bid.events[0]['bidder'] == accounts[2]
+    events = list(a2_first_bid.decode_logs(auction.Bid))
+    assert len(events) == 1
+    assert events[0].event_arguments['value'] == to_wei(3, "ether")
+    assert events[0].event_arguments['bidder'] == accounts[2]
 
-    assert auction.get_highest_bid() == Wei("3 ether")
-    assert auction.bids_to_bidder(Wei("3 ether")) == accounts[2]
-    assert auction.bidder_to_balance(accounts[1]) == Wei("2 ether")
+    assert auction.get_highest_bid() == to_wei(3, "ether")
+    assert auction.bids_to_bidder(to_wei(3, "ether")) == accounts[2]
+    assert auction.bidder_to_balance(accounts[1]) == to_wei(2, "ether")
 
 
 def test_close(accounts, chain, auction, a2_first_bid):
 
-    a0_balance = accounts[0].balance()
+    a0_balance = accounts[0].balance
 
-    chain.sleep(100001)
+    chain.mine(100)
 
-    tx = auction.close({'from': accounts[0]})
+    tx = auction.close(sender=accounts[0])
 
-    assert accounts[0].balance() == a0_balance + auction.get_second_highest_bid()
+    assert accounts[0].balance == a0_balance + auction.get_second_highest_bid() - tx.total_fees_paid
     assert auction.has_ended() == True
 
 
 def test_refund_1(accounts, auction, close_auction):
 
-    a1_balance = accounts[1].balance()
+    a1_balance = accounts[1].balance
 
-    refund_tx_1 = auction.refund({'from': accounts[1]})
+    refund_tx_1 = auction.refund(sender=accounts[1])
 
-    assert len(refund_tx_1.events) == 1
-    assert refund_tx_1.events[0]['value'] == Wei("2 ether")
-    assert refund_tx_1.events[0]['bidder'] == accounts[1]
+    events = list(refund_tx_1.decode_logs(auction.Refund))
+    assert len(events) == 1
+    assert events[0].event_arguments['value'] == to_wei(2, "ether")
+    assert events[0].event_arguments['bidder'] == accounts[1]
 
-    assert accounts[1].balance() == a1_balance + Wei("2 ether")
+    assert accounts[1].balance == a1_balance + to_wei(2, "ether") - refund_tx_1.total_fees_paid
     assert auction.bidder_to_balance(accounts[1]) == 0
 
 
 def test_refund_2(accounts, auction, close_auction):
 
-    a1_balance = accounts[2].balance()
+    a2_balance = accounts[2].balance
 
-    refund_tx_1 = auction.refund({'from': accounts[2]})
+    refund_tx = auction.refund(sender=accounts[2])
 
-    assert len(refund_tx_1.events) == 1
-    assert refund_tx_1.events[0]['value'] == Wei("1 ether")
-    assert refund_tx_1.events[0]['bidder'] == accounts[2]
+    events = list(refund_tx.decode_logs(auction.Refund))
+    assert len(events) == 1
+    assert events[0].event_arguments['value'] == to_wei(1, "ether")
+    assert events[0].event_arguments['bidder'] == accounts[2]
 
-    assert accounts[1].balance() == a1_balance + Wei("1 ether")
+    assert accounts[2].balance == a2_balance + to_wei(1, "ether") - refund_tx.total_fees_paid
     assert auction.bidder_to_balance(accounts[2]) == 0
 
 
 def test_single_bid_wins(accounts, auction, a1_first_bid):
 
-    assert auction.get_second_highest_bid() == Wei("1 ether")
+    assert auction.get_second_highest_bid() == to_wei(1, "ether")
 
-    a1_balance = accounts[1].balance()
-    a0_balance = accounts[0].balance()
+    a1_balance = accounts[1].balance
+    a0_balance = accounts[0].balance
 
-    chain.sleep(100001)
+    chain.mine(100)
 
-    close_tx = auction.close({'from': accounts[0]})
+    close_tx = auction.close(sender=accounts[0])
 
-    assert accounts[0].balance() == a0_balance + auction.get_second_highest_bid()
+    assert accounts[0].balance == a0_balance + auction.get_second_highest_bid() - close_tx.total_fees_paid
     assert auction.has_ended() == True
 
-    refund_tx = auction.refund({'from': accounts[1]})
+    refund_tx = auction.refund(sender=accounts[1])
 
-    assert len(refund_tx.events) == 1
-    assert refund_tx.events[0]['value'] == Wei("0.5 ether")
-    assert refund_tx.events[0]['bidder'] == accounts[1]
+    events = list(refund_tx.decode_logs(auction.Refund))
+    assert len(events) == 1
+    assert events[0].event_arguments['value'] == to_wei(0.5, "ether")
+    assert events[0].event_arguments['bidder'] == accounts[1]
 
 
 def test_illegal_close_auction_1(accounts, auction):
@@ -174,7 +171,7 @@ def test_illegal_close_auction_1(accounts, auction):
     assert auction.has_ended() == False
 
     with reverts("Auction has not ended"):
-        auction.close({'from': accounts[0]})
+        auction.close(sender=accounts[0])
 
     assert auction.has_ended() == False
 
@@ -184,6 +181,6 @@ def test_illegal_close_auction_2(accounts, auction, a1_first_bid):
     assert auction.has_ended() == False
 
     with reverts("Auction has not ended"):
-        auction.close({'from': accounts[0]})
+        auction.close(sender=accounts[0])
 
     assert auction.has_ended() == False

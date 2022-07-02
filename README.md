@@ -8,7 +8,8 @@ CAUTION: Not meant for production use.
 
 For Vyper contracts:
 - [Vyper](https://github.com/vyperlang/vyper)
-- [Brownie](https://github.com/eth-brownie/brownie)
+  - Some contracts may require the latest unreleased version of Vyper.
+- [Ape](https://github.com/ApeWorX/ape)
 
 For Cairo contracts:
 - [Cairo](https://www.cairo-lang.org/docs/quickstart.html)
@@ -34,4 +35,4 @@ For Cairo contracts:
 
 # Testing
 
-Run `brownie test` in your console.
+Run `ape test` in your console.

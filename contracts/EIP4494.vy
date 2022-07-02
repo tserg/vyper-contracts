@@ -212,7 +212,7 @@ def __init__(
             DOMAIN_TYPE_HASH,
             keccak256(convert("Vyper EIP4494", Bytes[13])),
             keccak256(convert("1.0.0", Bytes[5])),
-            convert(1337, bytes32), # chain ID for ganache
+            convert(chain.id, bytes32),
             self
         )
     )

@@ -1,26 +1,29 @@
 import pytest
 
-from brownie import (
+from ape import (
+    accounts,
+    project,
     reverts,
-    ZERO_ADDRESS
+)
+
+from tests.constants import (
+    ZERO_ADDRESS,
+    ERC165_INTERFACE_ID,
+    EIP_4671_INTERFACE_ID,
+    EIP_4671_METADATA_INTERFACE_ID,
+    EIP_4671_ENUMERABLE_INTERFACE_ID,
+    INVALID_INTERFACE_ID,
 )
 
 
-ERC165_INTERFACE_ID = "0x0000000000000000000000000000000000000000000000000000000001ffc9a7"
-EIP_4671_INTERFACE_ID = "0x00000000000000000000000000000000000000000000000000000000a511533d"
-EIP_4671_METADATA_INTERFACE_ID = "0x000000000000000000000000000000000000000000000000000000005b5e139f"
-EIP_4671_ENUMERABLE_INTERFACE_ID = "0x0000000000000000000000000000000000000000000000000000000002af8d63"
-INVALID_INTERFACE_ID = "0x0000000000000000000000000000000000000000000000000000000012345678"
-
-
-@pytest.fixture(scope="module", autouse="True")
-def ntt(accounts, NTT):
-    c = accounts[0].deploy(
-        NTT,
+@pytest.fixture(scope="class", autouse="True")
+def ntt(accounts):
+    c = project.NTT.deploy(
         "Non-Tradable Token",
         "NTT",
         "https://ntt.com",
-        100
+        100,
+        sender=accounts[0]
     )
     yield c
 
@@ -30,7 +33,7 @@ def mint_a1_1(accounts, ntt):
     tx = ntt.mint(
         accounts[1],
         "/1.json",
-        {'from': accounts[0]}
+        sender=accounts[0]
     )
     yield tx
 
@@ -40,7 +43,7 @@ def mint_a1_2(accounts, ntt):
     tx = ntt.mint(
         accounts[1],
         "/2.json",
-        {'from': accounts[0]}
+        sender=accounts[0]
     )
     yield tx
 
@@ -49,14 +52,9 @@ def mint_a1_2(accounts, ntt):
 def invalidate_a1_1(accounts, ntt):
     tx = ntt.invalidate(
         1,
-        {'from': accounts[0]}
+        sender=accounts[0]
     )
     yield tx
-
-
-@pytest.fixture(autouse=True)
-def isolation(fn_isolation):
-    pass
 
 
 def test_start_state(ntt):
@@ -72,10 +70,11 @@ def test_start_state(ntt):
 
 def test_mint(accounts, ntt, mint_a1_1):
 
-    assert len(mint_a1_1.events) == 1
-    assert mint_a1_1.events[0]["owner"] == accounts[1]
-    assert mint_a1_1.events[0]["tokenId"] == 1
-    assert mint_a1_1.events[0]["issuer"] == accounts[0]
+    events = list(mint_a1_1.decode_logs(ntt.Mint))
+    assert len(events) == 1
+    assert events[0].event_arguments["owner"] == accounts[1]
+    assert events[0].event_arguments["tokenId"] == 1
+    assert events[0].event_arguments["issuer"] == accounts[0]
 
     assert ntt.total() == 1
     assert ntt.issuerOf(1) == accounts[0]
@@ -93,7 +92,7 @@ def test_mint_non_owner_fail(accounts, ntt):
         ntt.mint(
             accounts[2],
             "/forbidden.json",
-            {'from': accounts[1]}
+            sender=accounts[1]
         )
 
 
@@ -103,15 +102,16 @@ def test_mint_zero_address_fail(accounts, ntt):
         ntt.mint(
             ZERO_ADDRESS,
             "/forbidden.json",
-            {'from': accounts[0]}
+            sender=accounts[0]
         )
 
 
 def test_invalidate(accounts, ntt, mint_a1_1, invalidate_a1_1):
 
-    assert len(invalidate_a1_1.events) == 1
-    assert invalidate_a1_1.events[0]["owner"] == accounts[1]
-    assert invalidate_a1_1.events[0]["tokenId"] == 1
+    events = list(invalidate_a1_1.decode_logs(ntt.Invalidate))
+    assert len(events) == 1
+    assert events[0].event_arguments["owner"] == accounts[1]
+    assert events[0].event_arguments["tokenId"] == 1
 
     assert ntt.total() == 1
     assert ntt.issuerOf(1) == accounts[0]
@@ -125,7 +125,7 @@ def test_invalidate_non_owner_fail(accounts, ntt, mint_a1_1):
     with reverts("Only owner is authorised to invalidate"):
         ntt.invalidate(
             1,
-            {'from': accounts[2]}
+            sender=accounts[2]
         )
 
 
@@ -134,7 +134,7 @@ def test_mint_nonexistent_index_fail(accounts, ntt, mint_a1_1):
     with reverts("Token ID does not exist"):
         ntt.invalidate(
             2,
-            {'from': accounts[0]}
+            sender=accounts[0]
         )
 
 
@@ -143,15 +143,16 @@ def test_invalidate_non_owner_fail(accounts, ntt, mint_a1_1):
     with reverts("Only owner is authorised to invalidate"):
         ntt.invalidate(
             1,
-            {'from': accounts[2]}
+            sender=accounts[2]
         )
 
 
 def test_multiple_mint_a1(accounts, ntt, mint_a1_1, mint_a1_2):
 
-    assert len(mint_a1_2.events) == 1
-    assert mint_a1_2.events[0]["owner"] == accounts[1]
-    assert mint_a1_2.events[0]["tokenId"] == 2
+    events = list(mint_a1_2.decode_logs(ntt.Mint))
+    assert len(events) == 1
+    assert events[0].event_arguments["owner"] == accounts[1]
+    assert events[0].event_arguments["tokenId"] == 2
 
     assert ntt.total() == 2
     assert ntt.issuerOf(2) == accounts[0]

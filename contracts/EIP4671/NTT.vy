@@ -1,4 +1,4 @@
-# @version ^0.3.2
+# @version ^0.3.4
 
 """
 @title EIP-4671 Non-Tradable Token
@@ -52,17 +52,13 @@ ownerToBalance: HashMap[address, uint256]
 # @dev Mapping from token ID to URI
 tokenIdToURI: HashMap[uint256, String[64]]
 
-# @dev ERC165 interface ID of ERC165
-ERC165_INTERFACE_ID: constant(Bytes[32]) = b"\x01\xff\xc9\xa7"
-
-# @dev ERC165 interface ID of EIP4671
-EIP_4671_INTERFACE_ID: constant(Bytes[32]) = b"\xa5\x11S="
-
-# @dev ERC165 interface ID of EIP4671Metadata
-EIP_4671_METADATA_INTERFACE_ID: constant(Bytes[32]) = b"[^\x13\x9f"
-
-# @dev ERC165 interface ID of EIP4671Enumerable
-EIP_4671_ENUMERABLE_INTERFACE_ID: constant(Bytes[32]) = b"\x02\xaf\x8dc"
+# @dev Supported interface IDs
+SUPPORTED_INTERFACES: constant(bytes4[4]) = [
+	0x01ffc9a7,  # ERC165
+	0xa511533d,  # EIP_4671_INTERFACE_ID
+	0x5b5e139f,  # EIP_4671_METADATA_INTERFACE_ID
+	0x02af8d63,  # EIP_4671_ENUMERABLE_INTERFACE_ID
+]
 
 # @dev Maximum number of tokens that can be issued for an address
 # 	   This is meant to overcome Vyper's feature of limiting range iteration and
@@ -135,23 +131,6 @@ def _invalidate(_tokenId: uint256):
 	log Invalidate(_owner, _tokenId)
 
 
-### Internal view functions
-
-
-@view
-@internal
-def _supportsInterface(_interfaceID: Bytes[4]) -> bool:
-	"""
-	@dev Internal function to check if interface is supported
-	@param _interfaceID Id of the interface in Bytes[4]
-	@return A boolean that indicates if the interface is supported
-	"""
-	return _interfaceID == ERC165_INTERFACE_ID or \
-	 	_interfaceID == EIP_4671_INTERFACE_ID or \
-		_interfaceID == EIP_4671_METADATA_INTERFACE_ID or \
-		_interfaceID == EIP_4671_ENUMERABLE_INTERFACE_ID
-
-
 ### External functions
 
 
@@ -196,13 +175,13 @@ def mint(recipient: address, tokenURI: String[64]) -> bool:
 
 @view
 @external
-def supportsInterface(_interfaceID: bytes32) -> bool:
+def supportsInterface(_interfaceID: bytes4) -> bool:
     """
     @dev Interface identification is specified in ERC-165.
     @param _interfaceID Id of the interface
 	@return A boolean that indicates if the interface is supported.
     """
-    return self._supportsInterface(slice(_interfaceID, 28, 4))
+    return _interfaceID in SUPPORTED_INTERFACES
 
 
 ### External view functions
