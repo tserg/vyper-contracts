@@ -1,10 +1,6 @@
 import pytest
 
-from ape import (
-    accounts,
-    project,
-    reverts,
-)
+from ape import reverts
 
 from tests.constants import (
     ZERO_ADDRESS,
@@ -13,7 +9,7 @@ from tests.constants import (
     INVALID_INTERFACE_ID,
     ERC721_METADATA_INTERFACE_ID,
     ERC721_ENUMERABLE_INTERFACE_ID,
-    ERC721_TOKEN_RECEIVER_INTERFACE_ID
+    ERC721_TOKEN_RECEIVER_INTERFACE_ID,
 )
 
 
@@ -21,7 +17,7 @@ from tests.constants import (
 
 
 @pytest.fixture(scope="class", autouse=True)
-def erc721(accounts):
+def erc721(accounts, project):
     c = project.ERC721.deploy(
         "Test Token",
         "TST",
@@ -33,11 +29,7 @@ def erc721(accounts):
     )
 
     # Mint 1 token
-    c.mint(
-        accounts[0],
-        '1.json',
-        sender=accounts[0]
-    )
+    c.mint(accounts[0], "1.json", sender=accounts[0])
     yield c
 
 
@@ -120,36 +112,16 @@ def test_isApprovedForAll(erc721, accounts):
     assert erc721.isApprovedForAll(accounts[0], accounts[1]) == 1
 
 
-def test_transferFrom_by_owner(accounts,erc721):
+def test_transferFrom_by_owner(accounts, erc721):
 
     with reverts():
-        erc721.transferFrom(
-            ZERO_ADDRESS,
-            accounts[0],
-            1,
-            sender=accounts[1]
-        )
+        erc721.transferFrom(ZERO_ADDRESS, accounts[0], 1, sender=accounts[1])
 
-        erc721.transferFrom(
-            accounts[0],
-            accounts[1],
-            1,
-            sender=accounts[1]
-        )
+        erc721.transferFrom(accounts[0], accounts[1], 1, sender=accounts[1])
 
-        erc721.transferFrom(
-            accounts[0],
-            accounts[1],
-            2,
-            sender=accounts[0]
-        )
+        erc721.transferFrom(accounts[0], accounts[1], 2, sender=accounts[0])
 
-    tx = erc721.transferFrom(
-        accounts[0],
-        accounts[1],
-        1,
-        sender=accounts[0]
-    )
+    tx = erc721.transferFrom(accounts[0], accounts[1], 1, sender=accounts[0])
 
     events = list(tx.decode_logs(erc721.Transfer))
     assert len(events) == 1
@@ -166,12 +138,7 @@ def test_transferFrom_by_owner(accounts,erc721):
 def test_transferFrom_by_approved(accounts, erc721):
 
     erc721.approve(accounts[1], 1, sender=accounts[0])
-    tx = erc721.transferFrom(
-        accounts[0],
-        accounts[2],
-        1,
-        sender=accounts[1]
-    )
+    tx = erc721.transferFrom(accounts[0], accounts[2], 1, sender=accounts[1])
 
     events = list(tx.decode_logs(erc721.Transfer))
     assert len(events) == 1
@@ -188,12 +155,7 @@ def test_transferFrom_by_approved(accounts, erc721):
 def test_transferFrom_by_operator(accounts, erc721):
 
     erc721.setApprovalForAll(accounts[1], True, sender=accounts[0])
-    tx = erc721.transferFrom(
-        accounts[0],
-        accounts[2],
-        1,
-        sender=accounts[1]
-    )
+    tx = erc721.transferFrom(accounts[0], accounts[2], 1, sender=accounts[1])
 
     events = list(tx.decode_logs(erc721.Transfer))
     assert len(events) == 1
@@ -207,36 +169,16 @@ def test_transferFrom_by_operator(accounts, erc721):
     assert erc721.ownerOf(1) == accounts[2]
 
 
-def test_safeTransferFrom_by_owner(accounts,erc721):
+def test_safeTransferFrom_by_owner(accounts, erc721):
 
     with reverts():
-        erc721.safeTransferFrom(
-            ZERO_ADDRESS,
-            accounts[0],
-            1,
-            sender=accounts[1]
-        )
+        erc721.safeTransferFrom(ZERO_ADDRESS, accounts[0], 1, sender=accounts[1])
 
-        erc721.safeTransferFrom(
-            accounts[0],
-            accounts[1],
-            1,
-            sender=accounts[1]
-        )
+        erc721.safeTransferFrom(accounts[0], accounts[1], 1, sender=accounts[1])
 
-        erc721.safeTransferFrom(
-            accounts[0],
-            accounts[1],
-            2,
-            sender=accounts[0]
-        )
+        erc721.safeTransferFrom(accounts[0], accounts[1], 2, sender=accounts[0])
 
-    tx = erc721.safeTransferFrom(
-        accounts[0],
-        accounts[1],
-        1,
-        sender=accounts[0]
-    )
+    tx = erc721.safeTransferFrom(accounts[0], accounts[1], 1, sender=accounts[0])
 
     events = list(tx.decode_logs(erc721.Transfer))
     assert len(events) == 1
@@ -253,12 +195,7 @@ def test_safeTransferFrom_by_owner(accounts,erc721):
 def test_safeTransferFrom_by_approved(accounts, erc721):
 
     erc721.approve(accounts[1], 1, sender=accounts[0])
-    tx = erc721.safeTransferFrom(
-        accounts[0],
-        accounts[2],
-        1,
-        sender=accounts[1]
-    )
+    tx = erc721.safeTransferFrom(accounts[0], accounts[2], 1, sender=accounts[1])
 
     events = list(tx.decode_logs(erc721.Transfer))
     assert len(events) == 1
@@ -275,12 +212,7 @@ def test_safeTransferFrom_by_approved(accounts, erc721):
 def test_safeTransferFrom_by_operator(accounts, erc721):
 
     erc721.setApprovalForAll(accounts[1], True, sender=accounts[0])
-    tx = erc721.safeTransferFrom(
-        accounts[0],
-        accounts[2],
-        1,
-        sender=accounts[1]
-    )
+    tx = erc721.safeTransferFrom(accounts[0], accounts[2], 1, sender=accounts[1])
 
     events = list(tx.decode_logs(erc721.Transfer))
     assert len(events) == 1

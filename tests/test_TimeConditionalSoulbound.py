@@ -1,16 +1,11 @@
 import pytest
-
-from ape import (
-    accounts,
-    chain,
-    project,
-    reverts,
-)
+from ape import chain, reverts
 
 from tests.constants import ZERO_ADDRESS
 
+
 @pytest.fixture(scope="class", autouse=True)
-def erc721(accounts):
+def erc721(accounts, project):
     c = project.TimedERC721.deploy(
         "Test Token",
         "TST",
@@ -18,20 +13,16 @@ def erc721(accounts):
         100,
         accounts[0],
         accounts[0],
-        sender=accounts[0]
+        sender=accounts[0],
     )
 
     # Mint 1 token
-    c.mint(
-        accounts[0],
-        '1.json',
-        sender=accounts[0]
-    )
+    c.mint(accounts[0], "1.json", sender=accounts[0])
     yield c
 
 
 @pytest.fixture(scope="class", autouse="True")
-def tcs(accounts, erc721):
+def tcs(accounts, project, erc721):
     c = project.TimeConditionalSoulbound.deploy(
         "Non-Tradable Token",
         "TCS",
@@ -39,7 +30,7 @@ def tcs(accounts, erc721):
         100,
         erc721.address,
         1000,
-        sender=accounts[0]
+        sender=accounts[0],
     )
     yield c
 

@@ -1,59 +1,39 @@
 import pytest
-
-from ape import (
-    accounts,
-    project,
-    reverts,
-)
+from ape import reverts
 
 from tests.constants import (
-    ZERO_ADDRESS,
-    ERC165_INTERFACE_ID,
+    EIP_4671_ENUMERABLE_INTERFACE_ID,
     EIP_4671_INTERFACE_ID,
     EIP_4671_METADATA_INTERFACE_ID,
-    EIP_4671_ENUMERABLE_INTERFACE_ID,
+    ERC165_INTERFACE_ID,
     INVALID_INTERFACE_ID,
+    ZERO_ADDRESS,
 )
 
 
 @pytest.fixture(scope="class", autouse="True")
-def ntt(accounts):
+def ntt(accounts, project):
     c = project.NTT.deploy(
-        "Non-Tradable Token",
-        "NTT",
-        "https://ntt.com",
-        100,
-        sender=accounts[0]
+        "Non-Tradable Token", "NTT", "https://ntt.com", 100, sender=accounts[0]
     )
     yield c
 
 
 @pytest.fixture
 def mint_a1_1(accounts, ntt):
-    tx = ntt.mint(
-        accounts[1],
-        "/1.json",
-        sender=accounts[0]
-    )
+    tx = ntt.mint(accounts[1], "/1.json", sender=accounts[0])
     yield tx
 
 
 @pytest.fixture
 def mint_a1_2(accounts, ntt):
-    tx = ntt.mint(
-        accounts[1],
-        "/2.json",
-        sender=accounts[0]
-    )
+    tx = ntt.mint(accounts[1], "/2.json", sender=accounts[0])
     yield tx
 
 
 @pytest.fixture
 def invalidate_a1_1(accounts, ntt):
-    tx = ntt.invalidate(
-        1,
-        sender=accounts[0]
-    )
+    tx = ntt.invalidate(1, sender=accounts[0])
     yield tx
 
 
@@ -89,21 +69,13 @@ def test_mint(accounts, ntt, mint_a1_1):
 def test_mint_non_owner_fail(accounts, ntt):
 
     with reverts("Only owner is authorised to mint"):
-        ntt.mint(
-            accounts[2],
-            "/forbidden.json",
-            sender=accounts[1]
-        )
+        ntt.mint(accounts[2], "/forbidden.json", sender=accounts[1])
 
 
 def test_mint_zero_address_fail(accounts, ntt):
 
     with reverts("Invalid address"):
-        ntt.mint(
-            ZERO_ADDRESS,
-            "/forbidden.json",
-            sender=accounts[0]
-        )
+        ntt.mint(ZERO_ADDRESS, "/forbidden.json", sender=accounts[0])
 
 
 def test_invalidate(accounts, ntt, mint_a1_1, invalidate_a1_1):
@@ -123,28 +95,19 @@ def test_invalidate(accounts, ntt, mint_a1_1, invalidate_a1_1):
 def test_invalidate_non_owner_fail(accounts, ntt, mint_a1_1):
 
     with reverts("Only owner is authorised to invalidate"):
-        ntt.invalidate(
-            1,
-            sender=accounts[2]
-        )
+        ntt.invalidate(1, sender=accounts[2])
 
 
 def test_mint_nonexistent_index_fail(accounts, ntt, mint_a1_1):
 
     with reverts("Token ID does not exist"):
-        ntt.invalidate(
-            2,
-            sender=accounts[0]
-        )
+        ntt.invalidate(2, sender=accounts[0])
 
 
 def test_invalidate_non_owner_fail(accounts, ntt, mint_a1_1):
 
     with reverts("Only owner is authorised to invalidate"):
-        ntt.invalidate(
-            1,
-            sender=accounts[2]
-        )
+        ntt.invalidate(1, sender=accounts[2])
 
 
 def test_multiple_mint_a1(accounts, ntt, mint_a1_1, mint_a1_2):
