@@ -27,12 +27,12 @@ def __init__():
 	_chain_id: uint256 = chain.id
 	CHAIN_ID = _chain_id
 	self.DOMAIN_SEPARATOR = keccak256(
-		concat( # not sure why _abi_encode does not work
+		_abi_encode(
 			DOMAIN_TYPE_HASH,
 			keccak256(convert("Plain", Bytes[5])),
 			keccak256(convert("1.0.0", Bytes[5])),
-			convert(1337, bytes32), # not sure why chain.id or _chain_id does not work
-			convert(self, bytes32),
+			convert(chain.id, bytes32),
+			self,
 		)
 	)
 
@@ -53,9 +53,9 @@ def message(
 			b'\x19\x01',
 			self.DOMAIN_SEPARATOR,
 			keccak256(
-				concat(
+				_abi_encode(
 					PERMIT_TYPE_HASH,
-					convert(CHAIN_ID, bytes32)
+					sms,
 				)
 			)
 		)

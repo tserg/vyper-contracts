@@ -1,3 +1,7 @@
 name: vyper-contracts
 plugins:
   - name: vyper
+
+test:
+  mnemonic: test test test test test test test test test test test junk
+  number_of_accounts: 5

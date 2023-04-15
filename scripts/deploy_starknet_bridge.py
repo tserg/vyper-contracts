@@ -1,8 +1,7 @@
-from brownie import (
+from ape import (
     accounts,
     chain,
-    ERC20,
-    Bridge,
+    project,
 )
 
 STARKNET_CORE_GOERLI_ADDRESS = "0xde29d060D45901Fb19ED6C6e959EB22d8626708e"
@@ -15,25 +14,25 @@ def main():
 
     # Deploy the ERC20
 
-    token = ERC20.deploy(
+    token = project.ERC20.deploy(
         "Starknet Token",
         "STNT",
         18,
         10000000,
-        {'from': a1}
+        sender=a1,
     )
 
     # Deploy the bridge
 
-    bridge = Bridge.deploy(
+    bridge = project.Bridge.deploy(
         token.address,
         STARKNET_CORE_GOERLI_ADDRESS,
-        {'from': a1}
+        sender=a1,
     )
 
     # Approve tokens for the bridge
 
-    token.approve(bridge.address, 10000000, {'from': a1})
+    token.approve(bridge.address, 10000000, sender=a1)
 
     # Compile Starknet contract with bridge contract address updated, and deploy
 
