@@ -1,0 +1,50 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      -main
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' 
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Black
+        run: black --check -C ./tests
+
+      - name: Run flake8
+        run: flake8 ./tests
+        if: always()
+      
+      - name: Run isort
+        run: isort --check-only --diff ./tests
+        if: always()
+
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' 
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: ape test
