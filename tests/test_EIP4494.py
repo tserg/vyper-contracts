@@ -1,9 +1,6 @@
-import json
-
 import pytest
-from ape import accounts, chain, reverts
-from ape.contracts.base import ContractEvent
-from eip712.messages import EIP712Message, EIP712Type
+from ape import reverts
+from eip712.messages import EIP712Message
 
 from tests.constants import (
     CHAIN_ID,
@@ -298,7 +295,7 @@ def test_permit(accounts, chain, local_account, eip4494):
 
     signed = local_account.sign_message(permit.signable_message)
 
-    tx = eip4494.permit(
+    eip4494.permit(
         permit.spender,
         permit.tokenId,
         permit.deadline,
@@ -340,7 +337,7 @@ def test_permit_two(accounts, chain, local_account, eip4494):
 
     signed = local_account.sign_message(permit.signable_message)
 
-    tx = eip4494.permit(
+    eip4494.permit(
         permit.spender,
         permit.tokenId,
         permit.deadline,
@@ -381,7 +378,7 @@ def test_permit_expired(accounts, chain, local_account, eip4494):
     signed = local_account.sign_message(permit.signable_message)
 
     with reverts():
-        tx = eip4494.permit(
+        eip4494.permit(
             permit.spender,
             permit.tokenId,
             permit.deadline,
@@ -424,7 +421,7 @@ def test_permit_fail_non_owner(accounts, chain, local_account, eip4494):
     signed = local_account.sign_message(permit.signable_message)
 
     with reverts():
-        tx = eip4494.permit(
+        eip4494.permit(
             permit.spender,
             permit.tokenId,
             permit.deadline,
@@ -556,7 +553,7 @@ def test_multiple_permits_invalid_on_first_transfer(
     signed_1 = local_account.sign_message(permit_1.signable_message)
     signed_2 = local_account.sign_message(permit_2.signable_message)
 
-    permit_tx_1 = eip4494.permit(
+    eip4494.permit(
         permit_1.spender,
         permit_1.tokenId,
         permit_1.deadline,
@@ -566,7 +563,7 @@ def test_multiple_permits_invalid_on_first_transfer(
 
     assert eip4494.getApproved(2) == accounts[1]
 
-    permit_tx_2 = eip4494.permit(
+    eip4494.permit(
         permit_2.spender,
         permit_2.tokenId,
         permit_2.deadline,

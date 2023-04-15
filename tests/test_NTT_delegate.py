@@ -104,10 +104,10 @@ def test_mint(accounts, ntt_delegate, mint_a1_1):
 
     assert ntt_delegate.total() == 1
     assert ntt_delegate.issuerOf(1) == accounts[0]
-    assert ntt_delegate.isValid(1) == True
+    assert ntt_delegate.isValid(1) is True
     assert ntt_delegate.ownerOf(1) == accounts[1]
     assert ntt_delegate.balanceOf(accounts[1]) == 1
-    assert ntt_delegate.hasValidToken(accounts[1]) == True
+    assert ntt_delegate.hasValidToken(accounts[1]) is True
     assert ntt_delegate.tokenOfOwnerByIndex(accounts[1], 0) == 1
     # assert ntt_delegate.tokenURI(1) == "https://ntt.com/1.json"
 
@@ -141,9 +141,9 @@ def test_invalidate(accounts, ntt_delegate, mint_a1_1, invalidate_a1_1):
 
     assert ntt_delegate.total() == 1
     assert ntt_delegate.issuerOf(1) == accounts[0]
-    assert ntt_delegate.isValid(1) == False
+    assert ntt_delegate.isValid(1) is False
     assert ntt_delegate.balanceOf(accounts[1]) == 1
-    assert ntt_delegate.hasValidToken(accounts[1]) == False
+    assert ntt_delegate.hasValidToken(accounts[1]) is False
 
 
 def test_mint_nonexistent_index_fail(accounts, ntt_delegate, mint_a1_1):
@@ -167,10 +167,10 @@ def test_multiple_mint_a1(accounts, ntt_delegate, mint_a1_1, mint_a1_2):
 
     assert ntt_delegate.total() == 2
     assert ntt_delegate.issuerOf(2) == accounts[0]
-    assert ntt_delegate.isValid(2) == True
+    assert ntt_delegate.isValid(2) is True
     assert ntt_delegate.ownerOf(2) == accounts[1]
     assert ntt_delegate.balanceOf(accounts[1]) == 2
-    assert ntt_delegate.hasValidToken(accounts[1]) == True
+    assert ntt_delegate.hasValidToken(accounts[1]) is True
 
 
 def test_delegate(accounts, ntt_delegate, delegate_single):
@@ -180,7 +180,7 @@ def test_delegate(accounts, ntt_delegate, delegate_single):
     assert events[0].event_arguments["delegate"] == accounts[2]
     assert events[0].event_arguments["recipient"] == accounts[1]
 
-    assert ntt_delegate.canMint(accounts[2], accounts[1]) == True
+    assert ntt_delegate.canMint(accounts[2], accounts[1]) is True
 
 
 def test_delegate_non_owner(accounts, ntt_delegate):
@@ -199,12 +199,12 @@ def test_delegate_mint(accounts, ntt_delegate, delegate_single_mint):
 
     assert ntt_delegate.total() == 1
     assert ntt_delegate.issuerOf(1) == accounts[2]
-    assert ntt_delegate.isValid(1) == True
+    assert ntt_delegate.isValid(1) is True
     assert ntt_delegate.ownerOf(1) == accounts[1]
     assert ntt_delegate.balanceOf(accounts[1]) == 1
-    assert ntt_delegate.hasValidToken(accounts[1]) == True
+    assert ntt_delegate.hasValidToken(accounts[1]) is True
 
-    assert ntt_delegate.canMint(accounts[2], accounts[1]) == False
+    assert ntt_delegate.canMint(accounts[2], accounts[1]) is False
 
 
 def test_delegate_batch(accounts, ntt_delegate, delegate_batch):
@@ -214,24 +214,24 @@ def test_delegate_batch(accounts, ntt_delegate, delegate_batch):
     assert events[0].event_arguments["delegate"] == accounts[1]
     assert events[0].event_arguments["recipient"] == accounts[2]
 
-    assert ntt_delegate.canMint(accounts[1], accounts[2]) == True
+    assert ntt_delegate.canMint(accounts[1], accounts[2]) is True
 
     assert events[1].event_arguments["delegate"] == accounts[2]
     assert events[1].event_arguments["recipient"] == accounts[3]
 
-    assert ntt_delegate.canMint(accounts[2], accounts[3]) == True
+    assert ntt_delegate.canMint(accounts[2], accounts[3]) is True
 
     assert events[2].event_arguments["delegate"] == accounts[3]
     assert events[2].event_arguments["recipient"] == accounts[4]
 
-    assert ntt_delegate.canMint(accounts[3], accounts[4]) == True
+    assert ntt_delegate.canMint(accounts[3], accounts[4]) is True
 
 
 def test_delegate_batch_mint(accounts, ntt_delegate, delegate_batch):
 
     tx1 = ntt_delegate.mint(
         accounts[2],
-        #'/1.json',
+        # '/1.json',
         sender=accounts[1],
     )
 
@@ -243,24 +243,24 @@ def test_delegate_batch_mint(accounts, ntt_delegate, delegate_batch):
 
     assert ntt_delegate.total() == 1
     assert ntt_delegate.issuerOf(1) == accounts[1]
-    assert ntt_delegate.isValid(1) == True
+    assert ntt_delegate.isValid(1) is True
     assert ntt_delegate.ownerOf(1) == accounts[2]
     assert ntt_delegate.balanceOf(accounts[2]) == 1
-    assert ntt_delegate.hasValidToken(accounts[2]) == True
+    assert ntt_delegate.hasValidToken(accounts[2]) is True
     # assert ntt_delegate.tokenURI(1) == "https://ntt_delegate.com/1.json"
 
-    assert ntt_delegate.canMint(accounts[1], accounts[2]) == False
+    assert ntt_delegate.canMint(accounts[1], accounts[2]) is False
 
     with reverts("Address is not authorised to mint"):
         ntt_delegate.mint(
             accounts[2],
-            #'/invalid.json',
+            # '/invalid.json',
             sender=accounts[1],
         )
 
     tx2 = ntt_delegate.mint(
         accounts[3],
-        #'/2.json',
+        # '/2.json',
         sender=accounts[2],
     )
 
@@ -272,23 +272,23 @@ def test_delegate_batch_mint(accounts, ntt_delegate, delegate_batch):
 
     assert ntt_delegate.total() == 2
     assert ntt_delegate.issuerOf(2) == accounts[2]
-    assert ntt_delegate.isValid(2) == True
+    assert ntt_delegate.isValid(2) is True
     assert ntt_delegate.ownerOf(2) == accounts[3]
     assert ntt_delegate.balanceOf(accounts[3]) == 1
-    assert ntt_delegate.hasValidToken(accounts[3]) == True
+    assert ntt_delegate.hasValidToken(accounts[3]) is True
 
-    assert ntt_delegate.canMint(accounts[2], accounts[3]) == False
+    assert ntt_delegate.canMint(accounts[2], accounts[3]) is False
 
     with reverts("Address is not authorised to mint"):
         ntt_delegate.mint(
             accounts[3],
-            #'/invalid.json',
+            # '/invalid.json',
             sender=accounts[2],
         )
 
     tx3 = ntt_delegate.mint(
         accounts[4],
-        #'/3.json',
+        # '/3.json',
         sender=accounts[3],
     )
 
@@ -300,18 +300,18 @@ def test_delegate_batch_mint(accounts, ntt_delegate, delegate_batch):
 
     assert ntt_delegate.total() == 3
     assert ntt_delegate.issuerOf(3) == accounts[3]
-    assert ntt_delegate.isValid(3) == True
+    assert ntt_delegate.isValid(3) is True
     assert ntt_delegate.ownerOf(3) == accounts[4]
     assert ntt_delegate.balanceOf(accounts[4]) == 1
-    assert ntt_delegate.hasValidToken(accounts[4]) == True
+    assert ntt_delegate.hasValidToken(accounts[4]) is True
     # assert ntt_delegate.tokenURI(3) == "https://ntt_delegate.com/3.json"
 
-    assert ntt_delegate.canMint(accounts[3], accounts[4]) == False
+    assert ntt_delegate.canMint(accounts[3], accounts[4]) is False
 
     with reverts("Address is not authorised to mint"):
         ntt_delegate.mint(
             accounts[4],
-            #'/invalid.json',
+            # '/invalid.json',
             sender=accounts[3],
         )
 
@@ -323,12 +323,12 @@ def test_delegate_batch_2(accounts, ntt_delegate, delegate_batch_2):
     assert events[0].event_arguments["delegate"] == accounts[1]
     assert events[0].event_arguments["recipient"] == accounts[2]
 
-    assert ntt_delegate.canMint(accounts[1], accounts[2]) == True
+    assert ntt_delegate.canMint(accounts[1], accounts[2]) is True
 
     assert events[1].event_arguments["delegate"] == accounts[1]
     assert events[1].event_arguments["recipient"] == accounts[3]
 
-    assert ntt_delegate.canMint(accounts[1], accounts[3]) == True
+    assert ntt_delegate.canMint(accounts[1], accounts[3]) is True
 
 
 def test_mint_batch(accounts, ntt_delegate, delegate_batch_2):
@@ -348,26 +348,26 @@ def test_mint_batch(accounts, ntt_delegate, delegate_batch_2):
     assert ntt_delegate.total() == 2
 
     assert ntt_delegate.issuerOf(1) == accounts[1]
-    assert ntt_delegate.isValid(1) == True
+    assert ntt_delegate.isValid(1) is True
     assert ntt_delegate.ownerOf(1) == accounts[2]
     assert ntt_delegate.balanceOf(accounts[2]) == 1
-    assert ntt_delegate.hasValidToken(accounts[2]) == True
+    assert ntt_delegate.hasValidToken(accounts[2]) is True
     # assert ntt_delegate.tokenURI(1) == "https://ntt_delegate.com/1.json"
 
-    assert ntt_delegate.canMint(accounts[1], accounts[2]) == False
+    assert ntt_delegate.canMint(accounts[1], accounts[2]) is False
 
     assert events[1].event_arguments["owner"] == accounts[3]
     assert events[1].event_arguments["tokenId"] == 2
     assert events[1].event_arguments["issuer"] == accounts[1]
 
     assert ntt_delegate.issuerOf(2) == accounts[1]
-    assert ntt_delegate.isValid(2) == True
+    assert ntt_delegate.isValid(2) is True
     assert ntt_delegate.ownerOf(2) == accounts[3]
     assert ntt_delegate.balanceOf(accounts[3]) == 1
-    assert ntt_delegate.hasValidToken(accounts[3]) == True
+    assert ntt_delegate.hasValidToken(accounts[3]) is True
     # assert ntt_delegate.tokenURI(2) == "https://ntt_delegate.com/2.json"
 
-    assert ntt_delegate.canMint(accounts[1], accounts[3]) == False
+    assert ntt_delegate.canMint(accounts[1], accounts[3]) is False
 
     with reverts("Address is not authorised to mint"):
         ntt_delegate.mintBatch(
@@ -394,39 +394,39 @@ def test_mint_batch_owner(accounts, ntt_delegate):
     assert ntt_delegate.total() == 3
 
     assert ntt_delegate.issuerOf(1) == accounts[0]
-    assert ntt_delegate.isValid(1) == True
+    assert ntt_delegate.isValid(1) is True
     assert ntt_delegate.ownerOf(1) == accounts[2]
     assert ntt_delegate.balanceOf(accounts[2]) == 1
-    assert ntt_delegate.hasValidToken(accounts[2]) == True
+    assert ntt_delegate.hasValidToken(accounts[2]) is True
     # assert ntt_delegate.tokenURI(1) == "https://ntt_delegate.com/1.json"
 
-    assert ntt_delegate.canMint(accounts[1], accounts[2]) == False
+    assert ntt_delegate.canMint(accounts[1], accounts[2]) is False
 
     assert events[1].event_arguments["owner"] == accounts[3]
     assert events[1].event_arguments["tokenId"] == 2
     assert events[1].event_arguments["issuer"] == accounts[0]
 
     assert ntt_delegate.issuerOf(2) == accounts[0]
-    assert ntt_delegate.isValid(2) == True
+    assert ntt_delegate.isValid(2) is True
     assert ntt_delegate.ownerOf(2) == accounts[3]
     assert ntt_delegate.balanceOf(accounts[3]) == 1
-    assert ntt_delegate.hasValidToken(accounts[3]) == True
+    assert ntt_delegate.hasValidToken(accounts[3]) is True
     # assert ntt_delegate.tokenURI(2) == "https://ntt_delegate.com/2.json"
 
-    assert ntt_delegate.canMint(accounts[1], accounts[3]) == False
+    assert ntt_delegate.canMint(accounts[1], accounts[3]) is False
 
     assert events[2].event_arguments["owner"] == accounts[4]
     assert events[2].event_arguments["tokenId"] == 3
     assert events[2].event_arguments["issuer"] == accounts[0]
 
     assert ntt_delegate.issuerOf(3) == accounts[0]
-    assert ntt_delegate.isValid(3) == True
+    assert ntt_delegate.isValid(3) is True
     assert ntt_delegate.ownerOf(3) == accounts[4]
     assert ntt_delegate.balanceOf(accounts[4]) == 1
-    assert ntt_delegate.hasValidToken(accounts[4]) == True
+    assert ntt_delegate.hasValidToken(accounts[4]) is True
     # assert ntt_delegate.tokenURI(3) == "https://ntt_delegate.com/3.json"
 
-    assert ntt_delegate.canMint(accounts[0], accounts[4]) == False
+    assert ntt_delegate.canMint(accounts[0], accounts[4]) is False
 
 
 def test_invalid_mint_batch(accounts, ntt_delegate):

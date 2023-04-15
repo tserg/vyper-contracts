@@ -1,5 +1,5 @@
 import pytest
-from ape import chain, reverts
+from ape import reverts
 from eth_utils import to_wei
 
 
@@ -27,8 +27,8 @@ def auction(accounts, project, erc721):
 
 
 @pytest.fixture
-def initialise(accounts, erc721, auction):
-    approve = erc721.approve(auction.address, 1, sender=accounts[0])
+def initialise(accounts, chain, erc721, auction):
+    erc721.approve(auction.address, 1, sender=accounts[0])
 
     start = auction.start_auction(
         to_wei(1, "ether"), chain.pending_timestamp + 100, 1, sender=accounts[0]
@@ -72,12 +72,12 @@ def close_auction(accounts, chain, auction, a2_first_bid):
 
 def test_start_state(auction):
 
-    assert auction.is_started() == False
+    assert auction.is_started() is False
 
 
 def test_auction_started(auction, erc721, initialise):
 
-    assert auction.is_started() == True
+    assert auction.is_started() is True
     assert auction.start_price() == to_wei(1, "ether")
     assert auction.token_id() == 1
 
@@ -133,7 +133,7 @@ def test_close(accounts, chain, erc721, auction, initialise, a2_first_bid):
         accounts[0].balance
         == a0_balance + auction.get_second_highest_bid() - tx.total_fees_paid
     )
-    assert auction.has_ended() == True
+    assert auction.has_ended() is True
 
 
 def test_refund_1(accounts, auction, initialise, close_auction):
@@ -172,11 +172,10 @@ def test_refund_2(accounts, auction, initialise, close_auction):
     assert auction.bidder_to_balance(accounts[2]) == 0
 
 
-def test_single_bid_wins(accounts, auction, initialise, a1_first_bid):
+def test_single_bid_wins(accounts, chain, auction, initialise, a1_first_bid):
 
     assert auction.get_second_highest_bid() == to_wei(1, "ether")
 
-    a1_balance = accounts[1].balance
     a0_balance = accounts[0].balance
 
     chain.mine(100)
@@ -187,7 +186,7 @@ def test_single_bid_wins(accounts, auction, initialise, a1_first_bid):
         accounts[0].balance
         == a0_balance + auction.get_second_highest_bid() - close_tx.total_fees_paid
     )
-    assert auction.has_ended() == True
+    assert auction.has_ended() is True
 
     refund_tx = auction.refund(sender=accounts[1])
 
@@ -199,29 +198,29 @@ def test_single_bid_wins(accounts, auction, initialise, a1_first_bid):
 
 def test_illegal_close_auction_1(accounts, auction, initialise):
 
-    assert auction.has_ended() == False
+    assert auction.has_ended() is False
 
     with reverts("Auction has not ended"):
         auction.close(sender=accounts[0])
 
-    assert auction.has_ended() == False
+    assert auction.has_ended() is False
 
 
 def test_illegal_close_auction_2(accounts, auction, initialise, a1_first_bid):
 
-    assert auction.has_ended() == False
+    assert auction.has_ended() is False
 
     with reverts("Auction has not ended"):
         auction.close(sender=accounts[0])
 
-    assert auction.has_ended() == False
+    assert auction.has_ended() is False
 
 
 def test_no_bid_close(accounts, chain, erc721, auction, initialise):
 
     chain.mine(100)
 
-    close_tx = auction.close(sender=accounts[0])
+    auction.close(sender=accounts[0])
 
     assert erc721.ownerOf(1) == accounts[0]
-    assert auction.has_ended() == True
+    assert auction.has_ended() is True

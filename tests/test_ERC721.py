@@ -1,17 +1,15 @@
 import pytest
-
 from ape import reverts
 
 from tests.constants import (
-    ZERO_ADDRESS,
     ERC165_INTERFACE_ID,
-    ERC721_INTERFACE_ID,
-    INVALID_INTERFACE_ID,
-    ERC721_METADATA_INTERFACE_ID,
     ERC721_ENUMERABLE_INTERFACE_ID,
+    ERC721_INTERFACE_ID,
+    ERC721_METADATA_INTERFACE_ID,
     ERC721_TOKEN_RECEIVER_INTERFACE_ID,
+    INVALID_INTERFACE_ID,
+    ZERO_ADDRESS,
 )
-
 
 # Tests adapted from official Vyper example
 

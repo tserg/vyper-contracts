@@ -1,10 +1,10 @@
 import pytest
-from ape import chain, reverts
+from ape import reverts
 from eth_utils import to_wei
 
 
 @pytest.fixture(scope="class", autouse=True)
-def auction(accounts, project):
+def auction(accounts, chain, project):
     c = project.vickrey_auction.deploy(
         to_wei(1, "ether"), chain.pending_timestamp + 100, sender=accounts[0]
     )
@@ -47,7 +47,7 @@ def close_auction(accounts, chain, auction, a2_first_bid):
 def test_start_state(auction):
 
     assert auction.get_highest_bid() == to_wei(1, "ether")
-    assert auction.has_ended() == False
+    assert auction.has_ended() is False
 
 
 def test_bid(accounts, auction, a1_first_bid):
@@ -97,7 +97,7 @@ def test_close(accounts, chain, auction, a2_first_bid):
         accounts[0].balance
         == a0_balance + auction.get_second_highest_bid() - tx.total_fees_paid
     )
-    assert auction.has_ended() == True
+    assert auction.has_ended() is True
 
 
 def test_refund_1(accounts, auction, close_auction):
@@ -136,11 +136,10 @@ def test_refund_2(accounts, auction, close_auction):
     assert auction.bidder_to_balance(accounts[2]) == 0
 
 
-def test_single_bid_wins(accounts, auction, a1_first_bid):
+def test_single_bid_wins(accounts, chain, auction, a1_first_bid):
 
     assert auction.get_second_highest_bid() == to_wei(1, "ether")
 
-    a1_balance = accounts[1].balance
     a0_balance = accounts[0].balance
 
     chain.mine(100)
@@ -151,7 +150,7 @@ def test_single_bid_wins(accounts, auction, a1_first_bid):
         accounts[0].balance
         == a0_balance + auction.get_second_highest_bid() - close_tx.total_fees_paid
     )
-    assert auction.has_ended() == True
+    assert auction.has_ended() is True
 
     refund_tx = auction.refund(sender=accounts[1])
 
@@ -163,19 +162,19 @@ def test_single_bid_wins(accounts, auction, a1_first_bid):
 
 def test_illegal_close_auction_1(accounts, auction):
 
-    assert auction.has_ended() == False
+    assert auction.has_ended() is False
 
     with reverts("Auction has not ended"):
         auction.close(sender=accounts[0])
 
-    assert auction.has_ended() == False
+    assert auction.has_ended() is False
 
 
 def test_illegal_close_auction_2(accounts, auction, a1_first_bid):
 
-    assert auction.has_ended() == False
+    assert auction.has_ended() is False
 
     with reverts("Auction has not ended"):
         auction.close(sender=accounts[0])
 
-    assert auction.has_ended() == False
+    assert auction.has_ended() is False

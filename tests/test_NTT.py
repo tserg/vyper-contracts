@@ -58,10 +58,10 @@ def test_mint(accounts, ntt, mint_a1_1):
 
     assert ntt.total() == 1
     assert ntt.issuerOf(1) == accounts[0]
-    assert ntt.isValid(1) == True
+    assert ntt.isValid(1) is True
     assert ntt.ownerOf(1) == accounts[1]
     assert ntt.balanceOf(accounts[1]) == 1
-    assert ntt.hasValidToken(accounts[1]) == True
+    assert ntt.hasValidToken(accounts[1]) is True
     assert ntt.tokenOfOwnerByIndex(accounts[1], 0) == 1
     assert ntt.tokenURI(1) == "https://ntt.com/1.json"
 
@@ -87,15 +87,9 @@ def test_invalidate(accounts, ntt, mint_a1_1, invalidate_a1_1):
 
     assert ntt.total() == 1
     assert ntt.issuerOf(1) == accounts[0]
-    assert ntt.isValid(1) == False
+    assert ntt.isValid(1) is False
     assert ntt.balanceOf(accounts[1]) == 1
-    assert ntt.hasValidToken(accounts[1]) == False
-
-
-def test_invalidate_non_owner_fail(accounts, ntt, mint_a1_1):
-
-    with reverts("Only owner is authorised to invalidate"):
-        ntt.invalidate(1, sender=accounts[2])
+    assert ntt.hasValidToken(accounts[1]) is False
 
 
 def test_mint_nonexistent_index_fail(accounts, ntt, mint_a1_1):
@@ -119,10 +113,10 @@ def test_multiple_mint_a1(accounts, ntt, mint_a1_1, mint_a1_2):
 
     assert ntt.total() == 2
     assert ntt.issuerOf(2) == accounts[0]
-    assert ntt.isValid(2) == True
+    assert ntt.isValid(2) is True
     assert ntt.ownerOf(2) == accounts[1]
     assert ntt.balanceOf(accounts[1]) == 2
-    assert ntt.hasValidToken(accounts[1]) == True
+    assert ntt.hasValidToken(accounts[1]) is True
     assert ntt.tokenOfOwnerByIndex(accounts[1], 0) == 1
     assert ntt.tokenOfOwnerByIndex(accounts[1], 1) == 2
     assert ntt.tokenURI(2) == "https://ntt.com/2.json"

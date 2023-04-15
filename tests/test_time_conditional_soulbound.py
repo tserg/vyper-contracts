@@ -1,7 +1,5 @@
 import pytest
-from ape import chain, reverts
-
-from tests.constants import ZERO_ADDRESS
+from ape import reverts
 
 
 @pytest.fixture(scope="class", autouse=True)
@@ -44,22 +42,14 @@ def test_start_state(erc721, tcs):
 def test_invalid_mint(accounts, erc721, tcs):
 
     with reverts("Timed ERC-721 conditions not met"):
-        tcs.mint(
-            accounts[0],
-            "/1.json",
-            sender=accounts[0],
-        )
+        tcs.mint(accounts[0], "/1.json", sender=accounts[0])
 
 
 def test_valid_mint(accounts, chain, erc721, tcs):
 
     chain.mine(1001)
 
-    tx = tcs.mint(
-        accounts[0],
-        "/1.json",
-        sender=accounts[0],
-    )
+    tx = tcs.mint(accounts[0], "/1.json", sender=accounts[0])
 
     events = list(tx.decode_logs(tcs.Mint))
     assert len(events) == 1
