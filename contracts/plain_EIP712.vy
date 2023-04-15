@@ -12,21 +12,17 @@ event Incoming:
 	sms: uint256
 	sender: indexed(address)
 
-CHAIN_ID: immutable(uint256)
-
-DOMAIN_SEPARATOR: public(bytes32)
-DOMAIN_TYPE_HASH: constant(bytes32) = keccak256(
-	'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'
+DOMAIN_SEPARATOR: public(immutable(bytes32))
+DOMAIN_TYPE_HASH: public(constant(bytes32)) = keccak256(
+	"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 )
-PERMIT_TYPE_HASH: constant(bytes32) = keccak256(
+PERMIT_TYPE_HASH: public(constant(bytes32)) = keccak256(
 	"Message(uint256 sms)"
 )
 
 @external
 def __init__():
-	_chain_id: uint256 = chain.id
-	CHAIN_ID = _chain_id
-	self.DOMAIN_SEPARATOR = keccak256(
+	DOMAIN_SEPARATOR = keccak256(
 		_abi_encode(
 			DOMAIN_TYPE_HASH,
 			keccak256(convert("Plain", Bytes[5])),
@@ -50,8 +46,8 @@ def message(
 	"""
 	digest: bytes32 = keccak256(
 		concat(
-			b'\x19\x01',
-			self.DOMAIN_SEPARATOR,
+			b"\x19\x01",
+			DOMAIN_SEPARATOR,
 			keccak256(
 				_abi_encode(
 					PERMIT_TYPE_HASH,

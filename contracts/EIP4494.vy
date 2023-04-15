@@ -170,11 +170,11 @@ ERC721_TOKEN_RECEIVER_INTERFACE_ID: constant(bytes4) = 0x150b7a02
 EIP4494_INTERFACE_ID: constant(bytes4) = 0x5604e225
 
 # @dev EIP-4494 state variables
-DOMAIN_SEPARATOR: public(bytes32)
-DOMAIN_TYPE_HASH: constant(bytes32) = keccak256(
+DOMAIN_SEPARATOR: public(immutable(bytes32))
+DOMAIN_TYPE_HASH: public(constant(bytes32)) = keccak256(
 	'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'
 )
-PERMIT_TYPE_HASH: constant(bytes32) = keccak256(
+PERMIT_TYPE_HASH: public(constant(bytes32)) = keccak256(
 	"Permit(address spender,uint256 tokenId,uint256 nonce,uint256 deadline)"
 )
 
@@ -207,7 +207,7 @@ def __init__(
     self.maxSupply = _maxSupply
     self.beneficiary = _beneficiary
 
-    self.DOMAIN_SEPARATOR = keccak256(
+    DOMAIN_SEPARATOR = keccak256(
         _abi_encode(
             DOMAIN_TYPE_HASH,
             keccak256(convert("Vyper EIP4494", Bytes[13])),
@@ -756,7 +756,7 @@ def permit(
     digest: bytes32 = keccak256(
         concat( # not sure why _abi_encode does not work
             b'\x19\x01',
-            self.DOMAIN_SEPARATOR,
+            DOMAIN_SEPARATOR,
             keccak256(
                 _abi_encode(
                     PERMIT_TYPE_HASH,
