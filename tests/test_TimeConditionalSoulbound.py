@@ -6,7 +6,7 @@ from tests.constants import ZERO_ADDRESS
 
 @pytest.fixture(scope="class", autouse=True)
 def erc721(accounts, project):
-    c = project.TimedERC721.deploy(
+    c = project.timed_ERC721.deploy(
         "Test Token",
         "TST",
         "https://www.test.com/",
@@ -23,7 +23,7 @@ def erc721(accounts, project):
 
 @pytest.fixture(scope="class", autouse="True")
 def tcs(accounts, project, erc721):
-    c = project.TimeConditionalSoulbound.deploy(
+    c = project.time_conditional_soulbound.deploy(
         "Non-Tradable Token",
         "TCS",
         "https://tcs.com",

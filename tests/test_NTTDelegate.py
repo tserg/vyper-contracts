@@ -14,7 +14,7 @@ from tests.constants import (
 
 @pytest.fixture(scope="class", autouse="True")
 def ntt_delegate(accounts, project):
-    c = project.NTTDelegate.deploy(
+    c = project.NTT_delegate.deploy(
         "Non-Tradable Token", "NTT", "https://ntt.com", 100, sender=accounts[0]
     )
     yield c

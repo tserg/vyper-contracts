@@ -5,7 +5,7 @@ from eth_utils import to_wei
 
 @pytest.fixture(scope="class", autouse=True)
 def auction(accounts, project):
-    c = project.VickreyAuction.deploy(
+    c = project.vickrey_auction.deploy(
         to_wei(1, "ether"), chain.pending_timestamp + 100, sender=accounts[0]
     )
     yield c

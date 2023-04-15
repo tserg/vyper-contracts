@@ -22,7 +22,7 @@ def erc721(accounts, project):
 
 @pytest.fixture(scope="class", autouse=True)
 def auction(accounts, project, erc721):
-    c = project.VickreyAuctionERC721.deploy(erc721.address, sender=accounts[0])
+    c = project.vickrey_auction_ERC721.deploy(erc721.address, sender=accounts[0])
     yield c
 
 
