@@ -1,4 +1,4 @@
-# @version ^0.3.2
+# @version ^0.3.7
 
 """
 @title EIP-4671 Non-Tradable (or Soulbound) Token where the right to claim is dependent on the duration of holding an associated ERC-721 token.
@@ -140,13 +140,13 @@ def mint(recipient: address, tokenURI: String[64]) -> bool:
 	"""
 	@notice Issue a new token to an address
 	@dev External function to mint a token.
-		 Throws if `_to` is ZERO_ADDRESS.
+		 Throws if `_to` is zero address.
 	@param recipient The address that will receive the minted token
 	@param tokenURI The token URI
 	@return A boolean that indicates if the operation was successful.
 	"""
 	# Throws if `_to` is zero address
-	assert recipient != ZERO_ADDRESS, "Invalid address"
+	assert recipient != empty(address), "Invalid address"
 
 	# Check if the timed ERC-721 token has been held for the minimum time
 	assert block.timestamp - TimedERC721(self.token).addressToEarliestTimestamp(recipient) > self.minimumTime, "Timed ERC-721 conditions not met"

@@ -1,4 +1,4 @@
-# @version ^0.3.4
+# @version ^0.3.7
 
 """
 @title EIP-4671 Non-Tradable Token with delegation of minting
@@ -153,12 +153,12 @@ def _delegate(_operator: address, _recipient: address):
 	"""
 	@notice Internal function to grant one-time minting right to `operator` for `owner`
 					An allowed operator can call the function to mint a token.
-	@dev Throws if `_recipient` is ZERO_ADDRESS.
+	@dev Throws if `_recipient` is zero address.
 	@param _operator The address that will be allowed to mint a token
 	@param _recipient Address for whom `operator` is allowed to mint a token
 	"""
-	# Throws if owner is ZERO_ADDRESS
-	assert _recipient != ZERO_ADDRESS, "Invalid recipient address"
+	# Throws if owner is zero address
+	assert _recipient != empty(address), "Invalid recipient address"
 
 	self.operatorToRecipientToValidity[_operator][_recipient] = True
 
@@ -174,7 +174,7 @@ def delegate(operator: address, recipient: address) -> bool:
 	@notice Grant one-time minting right to `operator` for `owner`
   			  An allowed operator can call the function to mint a token.
 	@dev Throws if `msg.sender` is not the owner of the contract
-			 Throws if `operator` is ZERO_ADDRESS
+			 Throws if `operator` is zero address
 	@param operator The address that will be allowed to mint a token
 	@param recipient Address for whom `operator` is allowed to mint a token
 	@return A boolean that indicates if the operation was successful.
@@ -182,8 +182,8 @@ def delegate(operator: address, recipient: address) -> bool:
 	# Throws if owner is not the sender
 	assert msg.sender == self.owner, "Only owner is authorised to delegate"
 
-	# Throws if operator or owner is ZERO_ADDRESS
-	assert operator != ZERO_ADDRESS, "Invalid operator address"
+	# Throws if operator or owner is zero address
+	assert operator != empty(address), "Invalid operator address"
 
 	self._delegate(operator, recipient)
 	return True
@@ -205,8 +205,8 @@ def delegateBatch(operators: DynArray[address, BATCH_SIZE], recipients: DynArray
 	for i in range(BATCH_SIZE):
 		_operator: address = operators[i]
 
-		# Terminate early if operator is ZERO_ADDRESS
-		if _operator == ZERO_ADDRESS:
+		# Terminate early if operator is zero address
+		if _operator == empty(address):
 			break
 		self._delegate(operators[i], recipients[i])
 
@@ -237,7 +237,7 @@ def mint(recipient: address) -> bool:
 	"""
 	@notice Issue a new token to an address
 	@dev External function to mint a token.
-		 Throws if `recipient` is ZERO_ADDRESS.
+		 Throws if `recipient` is zero address.
 		 Throws if `msg.sender` is not the owner of the contract
 	@param recipient The address that will receive the minted token
 	@return A boolean that indicates if the operation was successful.
@@ -247,7 +247,7 @@ def mint(recipient: address) -> bool:
 		self.operatorToRecipientToValidity[msg.sender][recipient] == True
 	), "Address is not authorised to mint"
 	# Throws if `_to` is zero address
-	assert recipient != ZERO_ADDRESS, "Invalid address"
+	assert recipient != empty(address), "Invalid address"
 
 	self._mint(recipient, msg.sender)
 	_current_token_id: uint256 = self.totalSupply
@@ -260,7 +260,7 @@ def mintBatch(recipients: DynArray[address, BATCH_SIZE]) -> bool:
 	"""
 	@notice Mint tokens to multiple addresses. Caller must have the right to mint for all owners.
 	@dev External function to mint tokens in batches.
-			 Throws if any of `recipients` is ZERO_ADDRESS.
+			 Throws if any of `recipients` is zero address.
 			 Throws if `msg.sender` is not the owner of the contract
 	@param recipients The addresses that will receive the minted token
 	@return A boolean that indicates if the operation was successful.
@@ -270,8 +270,8 @@ def mintBatch(recipients: DynArray[address, BATCH_SIZE]) -> bool:
 	for i in range(BATCH_SIZE):
 		_recipient: address = recipients[i]
 
-		# Terminate early if recipient is ZERO_ADDRESS
-		if _recipient == ZERO_ADDRESS:
+		# Terminate early if recipient is zero address
+		if _recipient == empty(address):
 			break
 
 		assert (msg.sender == self.owner or \

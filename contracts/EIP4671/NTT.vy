@@ -1,4 +1,4 @@
-# @version ^0.3.4
+# @version ^0.3.7
 
 """
 @title EIP-4671 Non-Tradable Token
@@ -158,7 +158,7 @@ def mint(recipient: address, tokenURI: String[64]) -> bool:
 	"""
 	@notice Issue a new token to an address
 	@dev External function to mint a token.
-		 Throws if `_to` is ZERO_ADDRESS.
+		 Throws if `_to` is zero address.
 		 Throws if `msg.sender` is not the owner of the contract
 	@param recipient The address that will receive the minted token
 	@param tokenURI The token URI
@@ -167,7 +167,7 @@ def mint(recipient: address, tokenURI: String[64]) -> bool:
 	# Throws if owner is not the sender
 	assert msg.sender == self.owner, "Only owner is authorised to mint"
 	# Throws if `_to` is zero address
-	assert recipient != ZERO_ADDRESS, "Invalid address"
+	assert recipient != empty(address), "Invalid address"
 
 	self._mint(recipient, tokenURI)
 	return True
