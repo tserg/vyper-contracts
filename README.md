@@ -1,5 +1,7 @@
 # Collection of Vyper contracts
 
+![tests](https://github.com/tserg/vyper-contracts/actions/workflows/test.yml/badge.svg)
+
 This is a collection of smart contracts implemented in the Vyper smart contract language on Ethereum.
 
 CAUTION: Not meant for production use.
